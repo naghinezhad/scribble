@@ -1,5 +1,7 @@
+# Binary files
+/bin/
+
 # Go
-/scribble
 /coverage.out
 
 # Environment variables

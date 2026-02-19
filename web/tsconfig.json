@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "target": "ES2024",
+        "allowJs": true,
+        "module": "NodeNext",
+        "moduleResolution": "nodenext",
+        "allowSyntheticDefaultImports": true,
+        "noEmit": true
+    },
+    "include": ["./**/*"]
+}

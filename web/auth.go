@@ -9,11 +9,11 @@ import (
 	authcontext "github.com/nasermirzaei89/scribble/auth/context"
 )
 
-func (h *HTTPHandler) authMiddleware(next http.Handler) http.Handler {
+func (h *Handler) authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var sessionValueNotFoundError *SessionValueNotFoundError
 
-		sessionId, err := h.getSessionValue(r, sessionIDKey)
+		sessionID, err := h.getSessionValue(r, sessionIDKey)
 		if err != nil && !errors.As(err, &sessionValueNotFoundError) {
 			slog.ErrorContext(
 				r.Context(),
@@ -28,8 +28,8 @@ func (h *HTTPHandler) authMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		if sessionId != nil && sessionId.(string) != "" {
-			session, err := h.authSvc.GetSession(r.Context(), sessionId.(string))
+		if sessionID != nil && sessionID.(string) != "" {
+			session, err := h.authSvc.GetSession(r.Context(), sessionID.(string))
 			if err != nil {
 				var sessionNotFoundError *auth.SessionNotFoundError
 				if errors.As(err, &sessionNotFoundError) {
@@ -61,7 +61,7 @@ func (h *HTTPHandler) authMiddleware(next http.Handler) http.Handler {
 					r.Context(),
 					"error on getting session",
 					"sessionId",
-					sessionId,
+					sessionID,
 					"error",
 					err,
 				)
@@ -132,7 +132,7 @@ func isAuthenticated(r *http.Request) bool {
 	return authcontext.GetSubject(r.Context()) != authcontext.Anonymous
 }
 
-func (h *HTTPHandler) AuthenticatedOnly(next http.Handler) http.Handler {
+func (h *Handler) AuthenticatedOnly(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !isAuthenticated(r) {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
@@ -144,7 +144,7 @@ func (h *HTTPHandler) AuthenticatedOnly(next http.Handler) http.Handler {
 	})
 }
 
-func (h *HTTPHandler) GuestOnly(next http.Handler) http.Handler {
+func (h *Handler) GuestOnly(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if isAuthenticated(r) {
 			http.Redirect(w, r, "/", http.StatusSeeOther)

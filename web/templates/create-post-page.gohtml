@@ -1,14 +1,20 @@
 {{ template "page-header.gohtml" . }}
 <main>
-    <h1>Create Post</h1>
-    <form method="POST" action="/create-post">
+    <form id="create-post-form" method="POST" action="/create-post">
         {{ .csrfField }}
-
-        <div>
-            <label for="content">Content:</label>
-            <textarea id="content" name="content" rows="10" required></textarea>
-        </div>
-        <button type="submit">Create Post</button>
     </form>
+
+    <div class="as-container px-4 py-8 flex flex-col gap-4">
+        <h1 class="text-2xl font-semibold">Create Post</h1>
+        <div class="as-text-field">
+            <label for="content">Content</label>
+            <div class="as-text-input">
+                <textarea id="content" name="content" form="create-post-form" autofocus rows="10" required></textarea>
+            </div>
+        </div>
+        <div>
+            <button type="submit" class="as-button is-primary" form="create-post-form">Create Post</button>
+        </div>
+    </div>
 </main>
 {{ template "page-footer.gohtml" . }}

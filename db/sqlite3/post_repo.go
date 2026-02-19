@@ -80,6 +80,7 @@ func (repo *PostRepository) List(ctx context.Context) ([]*contents.Post, error) 
 	if err != nil {
 		return nil, fmt.Errorf("failed to query: %w", err)
 	}
+
 	defer func() {
 		err := rows.Close()
 		if err != nil {
@@ -88,6 +89,7 @@ func (repo *PostRepository) List(ctx context.Context) ([]*contents.Post, error) 
 	}()
 
 	posts := make([]*contents.Post, 0)
+
 	for rows.Next() {
 		post, err := scanPost(rows)
 		if err != nil {

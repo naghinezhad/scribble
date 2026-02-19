@@ -1,16 +1,26 @@
 {{ template "page-header.gohtml" . }}
 <main>
-    <h1>Login</h1>
-    <form action="/login" method="POST">
+    <form id="login-form" action="/login" method="POST">
         {{ .csrfField }}
-
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required>
-        <br>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
-        <br>
-        <button type="submit">Login</button>
     </form>
+
+    <div class="as-container px-4 py-8 flex flex-col gap-4">
+        <h1 class="text-2xl font-semibold">Login</h1>
+        <div class="as-text-field">
+            <label for="username">Username</label>
+            <div class="as-text-input">
+                <input type="text" id="username" name="username" form="login-form" autofocus required>
+            </div>
+        </div>
+        <div class="as-text-field">
+            <label for="password">Password</label>
+            <div class="as-text-input">
+                <input type="password" id="password" name="password" form="login-form" required>
+            </div>
+        </div>
+        <div>
+            <button type="submit" class="as-button is-primary" form="login-form">Login</button>
+        </div>
+    </div>
 </main>
 {{ template "page-footer.gohtml" . }}

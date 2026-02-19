@@ -34,7 +34,6 @@ func HashPassword(password string) (string, error) {
 
 func (svc *Service) Register(ctx context.Context, username, password string) error {
 	// TODO: validate username and password
-
 	_, err := svc.userRepo.FindByUsername(ctx, username)
 	if err != nil {
 		var userByUsernameNotFoundErr *UserByUsernameNotFoundError
@@ -71,7 +70,6 @@ const defaultSessionDuration = 30 * 24 * time.Hour
 
 func (svc *Service) Login(ctx context.Context, username, password string) (*Session, error) {
 	// TODO: validate username and password
-
 	user, err := svc.userRepo.FindByUsername(ctx, username)
 	if err != nil {
 		var userByUsernameNotFoundErr *UserByUsernameNotFoundError

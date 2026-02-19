@@ -44,5 +44,6 @@ func (svc *Service) ListPosts(ctx context.Context) ([]*Post, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to list posts: %w", err)
 	}
+
 	return posts, nil
 }

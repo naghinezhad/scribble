@@ -15,7 +15,7 @@ func (err SessionValueNotFoundError) Error() string {
 	return fmt.Sprintf("session value for key '%s' not found", err.Key)
 }
 
-func (h *HTTPHandler) getSessionValue(r *http.Request, key string) (any, error) {
+func (h *Handler) getSessionValue(r *http.Request, key string) (any, error) {
 	session, err := h.cookieStore.Get(r, h.sessionName)
 	if err != nil {
 		return nil, fmt.Errorf("error getting session: %w", err)
@@ -29,7 +29,7 @@ func (h *HTTPHandler) getSessionValue(r *http.Request, key string) (any, error) 
 	return value, nil
 }
 
-func (h *HTTPHandler) setSessionValue(
+func (h *Handler) setSessionValue(
 	w http.ResponseWriter,
 	r *http.Request,
 	key string,
@@ -50,7 +50,7 @@ func (h *HTTPHandler) setSessionValue(
 	return nil
 }
 
-func (h *HTTPHandler) deleteSessionValue(w http.ResponseWriter, r *http.Request, key string) error {
+func (h *Handler) deleteSessionValue(w http.ResponseWriter, r *http.Request, key string) error {
 	session, err := h.cookieStore.Get(r, h.sessionName)
 	if err != nil {
 		return fmt.Errorf("error getting session: %w", err)

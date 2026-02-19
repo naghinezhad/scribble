@@ -8,6 +8,7 @@ import (
 
 	"github.com/SladkyCitron/slogcolor"
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/nasermirzaei89/scribble"
 )
 
 func main() {
@@ -15,7 +16,7 @@ func main() {
 
 	{
 		opts := slogcolor.DefaultOptions
-		opts.Level = getLogLevelFromEnv()
+		opts.Level = scribble.GetLogLevelFromEnv()
 		slog.SetDefault(slog.New(slogcolor.NewHandler(os.Stderr, opts)))
 	}
 
@@ -27,7 +28,7 @@ func main() {
 }
 
 func run(ctx context.Context) error {
-	app, err := NewApp(ctx)
+	app, err := scribble.NewApp(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create app: %w", err)
 	}

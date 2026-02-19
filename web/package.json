@@ -1,0 +1,29 @@
+{
+    "name": "scribble",
+    "private": true,
+    "scripts": {
+        "build:js": "esbuild --log-level=warning --bundle --minify --sourcemap --outfile=static/scripts.min.js --loader:.woff=file --loader:.woff2=file --asset-names=fonts/[name] assets/scripts/index.ts",
+        "build:css": "tailwindcss -i ./assets/styles/main.css -o ./static/style.min.css --minify",
+        "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css}\"",
+        "lint": "eslint \"assets/**/*.ts\""
+    },
+    "dependencies": {
+        "@fontsource/inter": "^5.2.8",
+        "@fontsource/merriweather": "^5.2.11",
+        "@fontsource/roboto": "^5.2.9",
+        "@fontsource/source-code-pro": "^5.2.7",
+        "htmx.org": "^2.0.8"
+    },
+    "devDependencies": {
+        "@tailwindcss/cli": "^4.2.0",
+        "@tailwindcss/typography": "^0.5.19",
+        "@typescript-eslint/eslint-plugin": "^8.56.0",
+        "@typescript-eslint/parser": "^8.56.0",
+        "esbuild": "^0.27.3",
+        "eslint": "^10.0.0",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-prettier": "^5.5.5",
+        "prettier": "^3.8.1",
+        "typescript": "^5.9.3"
+    }
+}

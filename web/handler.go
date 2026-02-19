@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"io/fs"
 	"log/slog"
 	"maps"
 	"net/http"
@@ -18,75 +19,97 @@ import (
 	"github.com/nasermirzaei89/scribble/contents"
 )
 
-//go:embed templates/*.gohtml
-var templatesFS embed.FS
+var (
+	//go:embed templates/*
+	templatesFS embed.FS
+
+	//go:embed static/*
+	staticFS embed.FS
+)
 
 const defaultSiteTitle = "Scribble"
 
-type HTTPHandler struct {
+type Handler struct {
 	mux         *http.ServeMux
 	handler     http.Handler
 	tpl         *template.Template
+	static      fs.FS
 	authSvc     *auth.Service
 	contentsSvc *contents.Service
 	cookieStore *sessions.CookieStore
 	sessionName string
+	assetHashes map[string]string
 }
 
-var _ http.Handler = (*HTTPHandler)(nil)
+var _ http.Handler = (*Handler)(nil)
 
-func NewHTTPHandler(
+func NewHandler(
 	authSvc *auth.Service,
 	contentsSvc *contents.Service,
 	cookieStore *sessions.CookieStore,
 	sessionName string,
 	csrfAuthKeys []byte,
 	csrfTrustedOrigins []string,
-) (*HTTPHandler, error) {
-	httpHandler := &HTTPHandler{
+) (*Handler, error) {
+	h := &Handler{
+		mux:         nil,
+		handler:     nil,
+		tpl:         nil,
 		authSvc:     authSvc,
 		contentsSvc: contentsSvc,
 		cookieStore: cookieStore,
 		sessionName: sessionName,
+		assetHashes: make(map[string]string),
 	}
 
 	{
-		tpl, err := template.ParseFS(templatesFS, "templates/*.gohtml")
+		tpl, err := template.New("").Funcs(h.funcs()).ParseFS(templatesFS, "templates/*.gohtml")
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse templates: %w", err)
 		}
 
-		httpHandler.tpl = tpl
+		h.tpl = tpl
 	}
 
 	{
-		httpHandler.mux = &http.ServeMux{}
-		httpHandler.handler = httpHandler.mux
+		static, err := fs.Sub(staticFS, "static")
+		if err != nil {
+			return nil, fmt.Errorf("failed to sub static fs: %w", err)
+		}
 
-		httpHandler.registerRoutes()
+		h.static = static
 	}
-
-	httpHandler.handler = httpHandler.authMiddleware(httpHandler.handler)
 
 	{
-		csrfMiddleware := csrf.Protect(
-			csrfAuthKeys,
-			csrf.TrustedOrigins(csrfTrustedOrigins),
-		)
+		h.mux = &http.ServeMux{}
+		h.handler = h.mux
 
-		httpHandler.handler = csrfMiddleware(httpHandler.handler)
+		h.registerRoutes()
 	}
 
-	httpHandler.handler = recoverMiddleware(httpHandler.handler)
+	{
+		h.handler = h.authMiddleware(h.handler)
 
-	return httpHandler, nil
+		{
+			csrfMiddleware := csrf.Protect(
+				csrfAuthKeys,
+				csrf.TrustedOrigins(csrfTrustedOrigins),
+			)
+
+			h.handler = csrfMiddleware(h.handler)
+		}
+
+		h.handler = recoverMiddleware(h.handler)
+	}
+
+	return h, nil
 }
 
-func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.handler.ServeHTTP(w, r)
 }
 
-func (h *HTTPHandler) registerRoutes() {
+func (h *Handler) registerRoutes() {
 	h.mux.HandleFunc("/", h.HandleIndex)
 
 	h.mux.Handle("GET /register", h.HandleRegisterPage())
@@ -120,7 +143,8 @@ func recoverMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
-func (h *HTTPHandler) renderTemplate(w http.ResponseWriter, r *http.Request, name string, extraData map[string]any,
+
+func (h *Handler) renderTemplate(w http.ResponseWriter, r *http.Request, name string, extraData map[string]any,
 ) {
 	data := map[string]any{
 		"CurrentPath":     r.URL.Path,
@@ -141,19 +165,33 @@ func (h *HTTPHandler) renderTemplate(w http.ResponseWriter, r *http.Request, nam
 	if err != nil {
 		slog.ErrorContext(r.Context(), "failed to render template", "name", name, "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+
 		return
 	}
 }
 
-func (h *HTTPHandler) HandleIndex(w http.ResponseWriter, r *http.Request) {
-	h.HandleHomePage(w, r)
+func (h *Handler) HandleIndex(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == "/" {
+		h.HandleHomePage(w, r)
+
+		return
+	}
+
+	h.HandleStatic(w, r)
 }
 
-func (h *HTTPHandler) HandleHomePage(w http.ResponseWriter, r *http.Request) {
+// HandleStatic serves static files.
+func (h *Handler) HandleStatic(w http.ResponseWriter, r *http.Request) {
+	// w.Header().Set("Cache-Control", "public, max-age=3600")
+	http.FileServer(http.FS(h.static)).ServeHTTP(w, r)
+}
+
+func (h *Handler) HandleHomePage(w http.ResponseWriter, r *http.Request) {
 	posts, err := h.contentsSvc.ListPosts(r.Context())
 	if err != nil {
 		slog.ErrorContext(r.Context(), "failed to list posts", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+
 		return
 	}
 
@@ -164,10 +202,11 @@ func (h *HTTPHandler) HandleHomePage(w http.ResponseWriter, r *http.Request) {
 	h.renderTemplate(w, r, "home-page.gohtml", data)
 }
 
-func (h *HTTPHandler) HandleRegisterPage() http.Handler {
+func (h *Handler) HandleRegisterPage() http.Handler {
 	hf := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		data := map[string]any{
 			csrf.TemplateTag: csrf.TemplateField(r),
+			"SiteTitle":      "Register",
 		}
 
 		h.renderTemplate(w, r, "register-page.gohtml", data)
@@ -176,12 +215,13 @@ func (h *HTTPHandler) HandleRegisterPage() http.Handler {
 	return h.GuestOnly(hf)
 }
 
-func (h *HTTPHandler) HandleRegister() http.Handler {
+func (h *Handler) HandleRegister() http.Handler {
 	hf := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		err := r.ParseForm()
 		if err != nil {
 			slog.ErrorContext(r.Context(), "failed to parse form", "error", err)
 			http.Error(w, "Bad Request", http.StatusBadRequest)
+
 			return
 		}
 
@@ -192,6 +232,7 @@ func (h *HTTPHandler) HandleRegister() http.Handler {
 		if err != nil {
 			slog.ErrorContext(r.Context(), "failed to register user", "error", err)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+
 			return
 		}
 
@@ -201,10 +242,11 @@ func (h *HTTPHandler) HandleRegister() http.Handler {
 	return h.GuestOnly(hf)
 }
 
-func (h *HTTPHandler) HandleLoginPage() http.Handler {
+func (h *Handler) HandleLoginPage() http.Handler {
 	hf := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		data := map[string]any{
 			csrf.TemplateTag: csrf.TemplateField(r),
+			"SiteTitle":      "Login",
 		}
 
 		h.renderTemplate(w, r, "login-page.gohtml", data)
@@ -213,12 +255,13 @@ func (h *HTTPHandler) HandleLoginPage() http.Handler {
 	return h.GuestOnly(hf)
 }
 
-func (h *HTTPHandler) HandleLogin() http.Handler {
+func (h *Handler) HandleLogin() http.Handler {
 	hf := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		err := r.ParseForm()
 		if err != nil {
 			slog.ErrorContext(r.Context(), "failed to parse form", "error", err)
 			http.Error(w, "Bad Request", http.StatusBadRequest)
+
 			return
 		}
 
@@ -242,6 +285,7 @@ func (h *HTTPHandler) HandleLogin() http.Handler {
 		if err != nil {
 			slog.ErrorContext(r.Context(), "failed to set session ID", "error", err)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+
 			return
 		}
 
@@ -251,10 +295,11 @@ func (h *HTTPHandler) HandleLogin() http.Handler {
 	return h.GuestOnly(hf)
 }
 
-func (h *HTTPHandler) HandleLogoutPage() http.Handler {
+func (h *Handler) HandleLogoutPage() http.Handler {
 	hf := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		data := map[string]any{
 			csrf.TemplateTag: csrf.TemplateField(r),
+			"SiteTitle":      "Logout",
 		}
 
 		h.renderTemplate(w, r, "logout-page.gohtml", data)
@@ -263,11 +308,10 @@ func (h *HTTPHandler) HandleLogoutPage() http.Handler {
 	return h.AuthenticatedOnly(hf)
 }
 
-func (h *HTTPHandler) HandleLogout() http.Handler {
+func (h *Handler) HandleLogout() http.Handler {
 	hf := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sessionID, ok := authcontext.SessionIDFromContext(r.Context())
 		if ok {
-			slog.DebugContext(r.Context(), "logging out session", "sessionId", sessionID)
 			err := h.authSvc.Logout(r.Context(), sessionID)
 			if err != nil {
 				slog.ErrorContext(r.Context(), "error on logout", "sessionId", sessionID, "error", err)
@@ -276,8 +320,6 @@ func (h *HTTPHandler) HandleLogout() http.Handler {
 				return
 			}
 		}
-
-		slog.DebugContext(r.Context(), "deleting session value", "key", sessionIDKey)
 
 		err := h.deleteSessionValue(w, r, sessionIDKey)
 		if err != nil {
@@ -300,10 +342,11 @@ func (h *HTTPHandler) HandleLogout() http.Handler {
 	return h.AuthenticatedOnly(hf)
 }
 
-func (h *HTTPHandler) HandleCreatePostPage() http.Handler {
+func (h *Handler) HandleCreatePostPage() http.Handler {
 	hf := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		data := map[string]any{
 			csrf.TemplateTag: csrf.TemplateField(r),
+			"SiteTitle":      "Create Post",
 		}
 
 		h.renderTemplate(w, r, "create-post-page.gohtml", data)
@@ -312,12 +355,13 @@ func (h *HTTPHandler) HandleCreatePostPage() http.Handler {
 	return h.AuthenticatedOnly(hf)
 }
 
-func (h *HTTPHandler) HandleCreatePost() http.Handler {
+func (h *Handler) HandleCreatePost() http.Handler {
 	hf := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		err := r.ParseForm()
 		if err != nil {
 			slog.ErrorContext(r.Context(), "failed to parse form", "error", err)
 			http.Error(w, "Bad Request", http.StatusBadRequest)
+
 			return
 		}
 
@@ -338,6 +382,7 @@ func (h *HTTPHandler) HandleCreatePost() http.Handler {
 		if err != nil {
 			slog.ErrorContext(r.Context(), "failed to create post", "error", err)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+
 			return
 		}
 

@@ -1,22 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ .Lang }}" dir="{{ .Dir }}">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scribble - Home</title>
+    <link rel="icon" type="image/x-icon" href="{{ hashed `/favicon.ico` }}">
+    <title>{{ .SiteTitle }}</title>
+    {{ if .SiteDescription }}
+    <meta name="description" content="{{ .SiteDescription }}">
+    {{ end }}
+    <link rel="stylesheet" href="{{ hashed `/style.min.css` }}">
+    <link rel="stylesheet" href="{{ hashed `/scripts.min.css` }}">
+    <script src="{{ hashed `/scripts.min.js` }}" defer></script>
 </head>
 
 <body>
-    <header>
-        <nav>
-            <a href="/" {{if eq .CurrentPath "/" }}class="selected" {{end}}>Home</a>
-            {{ if .IsAuthenticated }}
-            <a href="/create-post" {{if eq .CurrentPath "/create-post" }}class="selected" {{end}}>Create Post</a>
-            <a href="/logout" {{if eq .CurrentPath "/logout" }}class="selected" {{end}}>Logout</a>
-            {{ else }}
-            <a href="/login" {{if eq .CurrentPath "/login" }}class="selected" {{end}}>Login</a>
-            <a href="/register" {{if eq .CurrentPath "/register" }}class="selected" {{end}}>Register</a>
-            {{ end }}
-        </nav>
+    <header class="as-header">
+        <div class="as-container flex-1 flex flex-row items-center justify-between" hx-boost="true">
+            <a href="/" class="inline-flex gap-2 items-center">
+                <img src="{{ hashed `/images/logo.png` }}" alt="Scribble Logo"
+                    class="size-12 aspect-square object-contain">
+                <span class="font-medium text-xl">Scribble</span>
+            </a>
+            <nav>
+                <a href="/" {{if eq .CurrentPath "/" }}class="active" {{end}}>Home</a>
+                {{ if .IsAuthenticated }}
+                <a href="/create-post" {{if eq .CurrentPath "/create-post" }}class="active" {{end}}>Create Post</a>
+                <a href="/logout" {{if eq .CurrentPath "/logout" }}class="active" {{end}}>Logout</a>
+                {{ else }}
+                <a href="/login" {{if eq .CurrentPath "/login" }}class="active" {{end}}>Login</a>
+                <a href="/register" {{if eq .CurrentPath "/register" }}class="active" {{end}}>Register</a>
+                {{ end }}
+            </nav>
+        </div>
     </header>

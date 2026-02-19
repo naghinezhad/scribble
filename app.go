@@ -1,4 +1,4 @@
-package main
+package scribble
 
 import (
 	"context"
@@ -20,7 +20,7 @@ import (
 
 type App struct {
 	server  *server.Server
-	handler *web.HTTPHandler
+	handler *web.Handler
 	db      *sql.DB
 }
 
@@ -49,7 +49,7 @@ func NewApp(ctx context.Context) (*App, error) {
 	csrfAuthKeys := []byte(env.GetString("CSRF_AUTH_KEY", random.String(32)))
 	csrfTrustedOrigins := env.GetStringSlice("CSRF_TRUSTED_ORIGINS", []string{})
 
-	httpHandler, err := web.NewHTTPHandler(authSvc, contentsSvc, cookieStore, sessionName, csrfAuthKeys, csrfTrustedOrigins)
+	httpHandler, err := web.NewHandler(authSvc, contentsSvc, cookieStore, sessionName, csrfAuthKeys, csrfTrustedOrigins)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create HTTP handler: %w", err)
 	}
@@ -105,7 +105,7 @@ func newServer() *server.Server {
 	return server
 }
 
-func getLogLevelFromEnv() slog.Level {
+func GetLogLevelFromEnv() slog.Level {
 	levelStr := env.GetString("LOG_LEVEL", "info")
 	switch levelStr {
 	case "debug":

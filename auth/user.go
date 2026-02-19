@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 )
@@ -43,4 +44,4 @@ func (err UserAlreadyExistsError) Error() string {
 	return fmt.Sprintf("user with username %q already exists", err.Username)
 }
 
-var ErrCurrentUserNotFound = fmt.Errorf("current user not found")
+var ErrCurrentUserNotFound = errors.New("current user not found")

@@ -1,0 +1,121 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme {
+    --color-primary-50: #eef4fc;
+    --color-primary-100: #dce9fa;
+    --color-primary-200: #b9d3f4;
+    --color-primary-300: #8fb6eb;
+    --color-primary-400: #5e94e0;
+    --color-primary-500: #3a7bd5;
+    --color-primary-600: #2f6bc2;
+    --color-primary-700: #2559a3;
+    --color-primary-800: #1e477f;
+    --color-primary-900: #16345c;
+    --color-primary-950: #0e223c;
+
+    --font-serif: "Merriweather", Georgia, serif;
+    --font-sans: "Inter", "Roboto", sans-serif;
+    --font-mono: "Source Code Pro", monospace;
+}
+
+html {
+    @apply scroll-smooth;
+}
+
+body {
+    @apply bg-[#F6F3EE] text-gray-800 antialiased font-normal text-base;
+    @apply flex flex-col min-h-dvh;
+}
+
+main {
+    @apply flex-1;
+}
+
+.as-header {
+    @apply sticky top-0 z-10 bg-white/80 backdrop-blur-sm border-b border-gray-200 h-20 flex items-center shadow-sm px-4;
+
+    nav {
+        @apply flex items-center gap-4;
+
+        a {
+            @apply text-gray-700 hover:text-gray-900 transition-colors duration-200;
+
+            &.active {
+                @apply text-gray-900 font-semibold;
+            }
+        }
+    }
+}
+
+.as-footer {
+    @apply p-4;
+}
+
+.as-container {
+    @apply container max-w-3xl mx-auto;
+}
+
+.as-link {
+    @apply hover:underline text-primary-500 hover:text-primary-600;
+}
+
+.as-button {
+    @apply rounded-lg h-10 bg-gray-500 hover:bg-gray-600 active:bg-gray-700 text-white font-medium p-2 cursor-pointer transition-colors duration-100 inline-flex items-center justify-center gap-0;
+
+    &.is-primary {
+        @apply bg-primary-500 hover:bg-primary-600 active:bg-primary-700;
+    }
+
+    &.variant-outlined {
+        @apply bg-transparent border-2 border-gray-500 text-gray-500 hover:border-gray-600 hover:text-gray-600 active:border-gray-700 active:text-gray-700;
+
+        &.is-primary {
+            @apply bg-transparent border-primary-500 text-primary-500 hover:border-primary-600 hover:text-primary-600 active:border-primary-700 active:text-primary-700;
+        }
+    }
+
+    &.variant-text {
+        @apply bg-transparent text-gray-500 hover:bg-transparent hover:text-gray-600 active:bg-transparent active:text-gray-700;
+
+        &.is-primary {
+            @apply text-primary-500 hover:text-primary-600 active:text-primary-700;
+        }
+    }
+
+    &.is-block {
+        @apply w-full flex-1;
+    }
+
+    span {
+        @apply p-2;
+    }
+}
+
+.as-text-field {
+    @apply flex flex-col gap-1 items-stretch;
+}
+
+.as-text-field label,
+.as-label {
+    @apply inline-flex text-sm font-medium text-gray-700 px-1;
+}
+
+label {
+    @apply cursor-pointer;
+}
+
+.as-text-input {
+    @apply bg-white/80 backdrop-blur-sm border border-gray-300 rounded-md px-3 py-2 focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-1 focus-within:ring-offset-white transition-colors duration-100;
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    textarea {
+        @apply w-full border-none p-0 focus:ring-0 focus:outline-none;
+    }
+}
+
+.as-card {
+    @apply bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg shadow-sm p-4;
+}
