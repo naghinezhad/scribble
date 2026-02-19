@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"errors"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"log/slog"
 	"maps"
 	"net/http"
+	"runtime/debug"
 
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
@@ -72,6 +74,8 @@ func NewHTTPHandler(
 		httpHandler.handler = csrfMiddleware(httpHandler.handler)
 	}
 
+	httpHandler.handler = recoverMiddleware(httpHandler.handler)
+
 	return httpHandler, nil
 }
 
@@ -97,7 +101,26 @@ func (h *HTTPHandler) isAuthenticated(r *http.Request) bool {
 	sessionID, _ := h.getSessionID(r)
 	return sessionID != ""
 }
+func recoverMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func(ctx context.Context) {
+			if err := recover(); err != nil {
+				slog.ErrorContext(
+					ctx,
+					"recovered from panic",
+					"error",
+					err,
+					"stack",
+					string(debug.Stack()),
+				)
 
+				http.Error(w, "internal error occurred", http.StatusInternalServerError)
+			}
+		}(r.Context())
+
+		next.ServeHTTP(w, r)
+	})
+}
 func (h *HTTPHandler) renderTemplate(w http.ResponseWriter, r *http.Request, name string, extraData map[string]any,
 ) {
 	data := map[string]any{
