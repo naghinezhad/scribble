@@ -195,11 +195,44 @@ func (h *Handler) HandleHomePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	postsWithAuthors, err := h.preloadPostAuthor(r.Context(), posts)
+	if err != nil {
+		slog.ErrorContext(r.Context(), "failed to preload post authors", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+
+		return
+	}
+
 	data := map[string]any{
-		"Posts": posts,
+		"Posts": postsWithAuthors,
 	}
 
 	h.renderTemplate(w, r, "home-page.gohtml", data)
+}
+
+type PostWithAuthor struct {
+	contents.Post
+
+	Author *auth.User
+}
+
+func (h *Handler) preloadPostAuthor(ctx context.Context, posts []*contents.Post) ([]*PostWithAuthor, error) {
+	var result []*PostWithAuthor
+
+	// TODO: optimize this by batching user retrieval instead of doing it one by one
+	for _, post := range posts {
+		author, err := h.authSvc.GetUser(ctx, post.AuthorID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get author: %w", err)
+		}
+
+		result = append(result, &PostWithAuthor{
+			Post:   *post,
+			Author: author,
+		})
+	}
+
+	return result, nil
 }
 
 func (h *Handler) HandleRegisterPage() http.Handler {

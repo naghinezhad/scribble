@@ -119,3 +119,12 @@ label {
 .as-card {
     @apply bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg shadow-sm p-4;
 }
+
+.as-avatar {
+    @apply rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-medium overflow-hidden aspect-square border border-gray-300;
+
+    &img,
+    img {
+        @apply object-cover;
+    }
+}
