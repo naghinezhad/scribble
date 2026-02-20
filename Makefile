@@ -55,6 +55,7 @@ go-run: .which-go ## Run the application
 .PHONY: go-format
 go-format: .which-go ## Format files
 	$(GO_CMD) mod tidy
+	$(GO_CMD) fix $(ROOT)/...
 	$(GOLANGCI_LINT_CMD) fmt $(ROOT)/...
 
 .PHONY: go-lint
