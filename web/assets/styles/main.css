@@ -15,7 +15,7 @@
     --color-primary-950: #0e223c;
 
     --font-serif: "Merriweather", Georgia, serif;
-    --font-sans: "Inter", "Roboto", sans-serif;
+    --font-sans: "Inter", "Roboto", "Vazirmatn", sans-serif;
     --font-mono: "Source Code Pro", monospace;
 }
 
@@ -61,14 +61,14 @@ main {
 }
 
 .as-button {
-    @apply rounded-lg h-10 bg-gray-500 hover:bg-gray-600 active:bg-gray-700 text-white font-medium p-2 cursor-pointer transition-colors duration-100 inline-flex items-center justify-center gap-0;
+    @apply rounded-lg h-10 bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-white font-medium p-2 cursor-pointer transition-colors duration-100 inline-flex items-center justify-center gap-0;
 
     &.is-primary {
         @apply bg-primary-500 hover:bg-primary-600 active:bg-primary-700;
     }
 
     &.variant-outlined {
-        @apply bg-transparent border-2 border-gray-500 text-gray-500 hover:border-gray-600 hover:text-gray-600 active:border-gray-700 active:text-gray-700;
+        @apply bg-transparent border-2 border-gray-600 text-gray-600 hover:border-gray-700 hover:text-gray-700 active:border-gray-800 active:text-gray-800;
 
         &.is-primary {
             @apply bg-transparent border-primary-500 text-primary-500 hover:border-primary-600 hover:text-primary-600 active:border-primary-700 active:text-primary-700;
@@ -76,7 +76,7 @@ main {
     }
 
     &.variant-text {
-        @apply bg-transparent text-gray-500 hover:bg-transparent hover:text-gray-600 active:bg-transparent active:text-gray-700;
+        @apply bg-transparent text-gray-600 hover:bg-transparent hover:text-gray-700 active:bg-transparent active:text-gray-800;
 
         &.is-primary {
             @apply text-primary-500 hover:text-primary-600 active:text-primary-700;
@@ -117,7 +117,7 @@ label {
 }
 
 .as-card {
-    @apply bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg shadow-sm p-4;
+    @apply bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg shadow-sm p-8;
 }
 
 .as-avatar {
@@ -126,5 +126,32 @@ label {
     &img,
     img {
         @apply object-cover;
+    }
+}
+
+.as-message {
+    @apply flex flex-row items-center gap-4 nth-[2]:flex-1;
+    @apply bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg shadow-lg p-4 text-gray-900 mx-4;
+    @apply z-50 fixed top-24 right-0 nth-of-type-1:translate-y-0 nth-of-type-2:translate-y-16 nth-of-type-3:translate-y-32 nth-of-type-4:translate-y-48 nth-of-type-5:translate-y-64;
+
+    @apply transition duration-300 ease-in-out;
+    &.htmx-added {
+        @apply translate-x-full;
+    }
+
+    &.closing {
+        @apply opacity-0;
+    }
+
+    svg {
+        @apply size-6;
+    }
+
+    &.type-error svg {
+        @apply text-red-400;
+    }
+
+    &.type-success svg {
+        @apply text-green-400;
     }
 }

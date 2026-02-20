@@ -1,6 +1,6 @@
 {{ template "page-header.gohtml" . }}
 <main>
-    <form id="login-form" action="/login" method="POST">
+    <form id="login-form" action="/login" method="POST" hx-boost="true">
         {{ .csrfField }}
     </form>
 
@@ -9,7 +9,8 @@
         <div class="as-text-field">
             <label for="username">Username</label>
             <div class="as-text-input">
-                <input type="text" id="username" name="username" form="login-form" autofocus required>
+                <input type="text" id="username" name="username" form="login-form" autofocus required
+                    autocomplete="username">
             </div>
         </div>
         <div class="as-text-field">
@@ -20,7 +21,12 @@
             </div>
         </div>
         <div>
-            <button type="submit" class="as-button is-primary" form="login-form">Login</button>
+            <button type="submit" class="as-button is-primary" form="login-form">Sign In</button>
+        </div>
+        <div>
+            <p>
+                Don't have an account? <a href="/register" class="as-link">Register here</a>.
+            </p>
         </div>
     </div>
 </main>

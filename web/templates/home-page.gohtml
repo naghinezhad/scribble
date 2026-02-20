@@ -13,7 +13,7 @@
                         <div class="text-sm opacity-75">{{ formatTime .CreatedAt `Jan 2, 2006 at 3:04pm` }}</div>
                     </div>
                 </div>
-                <p class="prose">{{ .Content }}</p>
+                <p class="prose min-w-full" dir="auto">{{ .Content }}</p>
             </article>
             {{ end }}
         </div>

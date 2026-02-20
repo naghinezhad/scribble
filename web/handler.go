@@ -263,8 +263,14 @@ func (h *Handler) HandleRegister() http.Handler {
 
 		err = h.authSvc.Register(r.Context(), username, password)
 		if err != nil {
-			slog.ErrorContext(r.Context(), "failed to register user", "error", err)
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			var userAlreadyExistsErr *auth.UserAlreadyExistsError
+			switch {
+			case errors.As(err, &userAlreadyExistsErr):
+				http.Error(w, "Username already exists", http.StatusConflict)
+			default:
+				slog.ErrorContext(r.Context(), "failed to register user", "error", err)
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			}
 
 			return
 		}
