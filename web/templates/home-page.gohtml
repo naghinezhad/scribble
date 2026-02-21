@@ -15,7 +15,12 @@
                 </div>
                 <p class="as-card-body prose min-w-full" dir="auto">{{ .Content }}</p>
                 <div class="as-card-footer">
-                    <a href="/p/{{ .ID }}#comments" class="as-button variant-text">Comments (0)</a>
+                    <a href="/p/{{ .ID }}#comments" class="as-button variant-text">
+                        Comments
+                        {{ if .CommentsCount }}
+                        ({{ .CommentsCount }})
+                        {{ end }}
+                    </a>
                 </div>
             </article>
             {{ end }}

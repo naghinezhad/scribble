@@ -235,8 +235,9 @@ func (h *Handler) HandleHomePage(w http.ResponseWriter, r *http.Request) {
 type FullPost struct {
 	contents.Post
 
-	Author   *auth.User
-	Comments []*CommentWithAuthor
+	Author        *auth.User
+	CommentsCount *int
+	Comments      []*CommentWithAuthor
 }
 
 type CommentWithAuthor struct {
@@ -257,9 +258,15 @@ func (h *Handler) preloadPostAuthor(ctx context.Context, posts []*contents.Post)
 			return nil, fmt.Errorf("failed to get author: %w", err)
 		}
 
+		commentsCount, err := h.discussSvc.CountComments(ctx, post.ID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to count comments: %w", err)
+		}
+
 		result = append(result, &FullPost{
-			Post:   *post,
-			Author: author,
+			Post:          *post,
+			Author:        author,
+			CommentsCount: &commentsCount,
 		})
 	}
 

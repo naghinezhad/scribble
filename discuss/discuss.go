@@ -56,3 +56,12 @@ func (svc *Service) ListComments(ctx context.Context, postID string) ([]*Comment
 
 	return comments, nil
 }
+
+func (svc *Service) CountComments(ctx context.Context, postID string) (int, error) {
+	count, err := svc.commentRepo.Count(ctx, &CountCommentsParams{PostID: postID})
+	if err != nil {
+		return 0, fmt.Errorf("failed to count comments: %w", err)
+	}
+
+	return count, nil
+}

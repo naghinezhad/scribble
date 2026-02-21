@@ -126,3 +126,25 @@ func (repo *CommentRepository) List(
 
 	return comments, nil
 }
+
+func (repo *CommentRepository) Count(
+	ctx context.Context,
+	params *discuss.CountCommentsParams,
+) (int, error) {
+	query := sq.Select("COUNT(*)").
+		From(tableComments)
+
+	if params.PostID != "" {
+		query = query.Where(sq.Eq{commentFieldPostID: params.PostID})
+	}
+
+	query = query.RunWith(repo.db)
+
+	var count int
+	err := query.QueryRowContext(ctx).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("query failed: %w", err)
+	}
+
+	return count, nil
+}

@@ -17,8 +17,13 @@ type Comment struct {
 type CommentRepository interface {
 	Insert(ctx context.Context, comment *Comment) (err error)
 	List(ctx context.Context, params *ListCommentsParams) (comments []*Comment, err error)
+	Count(ctx context.Context, params *CountCommentsParams) (count int, err error)
 }
 
 type ListCommentsParams struct {
+	PostID string
+}
+
+type CountCommentsParams struct {
 	PostID string
 }
