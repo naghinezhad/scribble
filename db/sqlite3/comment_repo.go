@@ -141,6 +141,7 @@ func (repo *CommentRepository) Count(
 	query = query.RunWith(repo.db)
 
 	var count int
+
 	err := query.QueryRowContext(ctx).Scan(&count)
 	if err != nil {
 		return 0, fmt.Errorf("query failed: %w", err)
