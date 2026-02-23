@@ -58,3 +58,7 @@ Always check and handle errors returned from functions.
 
 Logging an error with error level means you have handled it.
 If you are just propagating the error, do not log it; let the caller handle it.
+
+## Google Style Guide
+
+Follow the [Google Go Style Guide](https://google.github.io/styleguide/go/) for more best practices and conventions in Go programming.
