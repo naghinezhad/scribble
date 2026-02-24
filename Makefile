@@ -8,8 +8,13 @@ GOOS?=$(shell go env GOOS)
 GOARCH?=$(shell go env GOARCH)
 CGO_ENABLED?=0
 
+LIVE_RELOAD?=1
+
 # Install by `go get -tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint@<SET VERSION>`
 GOLANGCI_LINT_CMD=$(GO_CMD) tool golangci-lint
+
+# Install by `go get -tool github.com/air-verse/air@<SET VERSION>`
+AIR_CMD=$(GO_CMD) tool air
 
 NPM_CMD?=npm
 
@@ -25,7 +30,13 @@ help: ## Show help
 dep: go-mod-download npm-install ## Install all dependencies
 
 .PHONY: run
-run: npm-build go-run ## Run the application after building JS/CSS
+run: ## Run the application
+ifeq ($(LIVE_RELOAD),1)
+	$(MAKE) air-run
+else
+	$(MAKE) npm-build
+	$(MAKE) go-run
+endif
 
 .PHONY: format
 format: go-format npm-format ## Format all files
@@ -51,6 +62,9 @@ go-mod-download: .which-go ## Install go dependencies
 .PHONY: go-run
 go-run: .which-go ## Run the application
 	$(GO_CMD) run $(ROOT)/cmd/$(APP_NAME)
+
+air-run: .which-go ## Run the application with live reload
+	$(AIR_CMD) -c $(ROOT)/.air.toml
 
 .PHONY: go-format
 go-format: .which-go ## Format files
