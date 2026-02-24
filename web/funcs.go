@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
@@ -15,6 +16,17 @@ func (h *Handler) funcs() template.FuncMap {
 	return template.FuncMap{
 		"html": func(s string) template.HTML {
 			return template.HTML(s) //nolint:gosec
+		},
+		"markdown": func(s string) template.HTML {
+			var buf bytes.Buffer
+
+			err := h.markdown.Convert([]byte(s), &buf)
+			if err != nil {
+				slog.Error("failed to convert markdown", "error", err)
+				return template.HTML("<p><em>Failed to render markdown content.</em></p>")
+			}
+
+			return template.HTML(buf.String()) //nolint:gosec
 		},
 		"formatTime": func(t time.Time, layout string) string {
 			return t.Format(layout)

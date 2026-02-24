@@ -5,3 +5,4 @@ import "@fontsource/vazirmatn";
 import "@fontsource/source-code-pro";
 
 import "./htmx";
+import "./wysiwyg-editor";

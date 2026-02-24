@@ -1,0 +1,72 @@
+.wysiwyg-editor {
+    @apply text-gray-950;
+    @apply text-base w-full;
+
+    .wysiwyg-editor-content {
+        @apply prose max-w-none min-h-32 focus:outline-none focus:ring-0;
+        /* @apply dark:prose-invert; */
+
+        .ProseMirror-selectednode {
+            @apply outline-2 outline-gray-300;
+        }
+
+        [data-resize-handle] {
+            @apply absolute bg-black/50 hover:bg-black/80 border border-white/80 rounded-xs z-10;
+
+            /* Corner handles */
+            &[data-resize-handle="top-left"],
+            &[data-resize-handle="top-right"],
+            &[data-resize-handle="bottom-left"],
+            &[data-resize-handle="bottom-right"] {
+                @apply size-2;
+            }
+
+            &[data-resize-handle="top-left"] {
+                @apply -top-1 -left-1 cursor-nwse-resize;
+            }
+
+            &[data-resize-handle="top-right"] {
+                @apply -top-1 -right-1 cursor-nesw-resize;
+            }
+
+            &[data-resize-handle="bottom-left"] {
+                @apply -bottom-1 -left-1 cursor-nesw-resize;
+            }
+
+            &[data-resize-handle="bottom-right"] {
+                @apply -bottom-1 -right-1 cursor-nwse-resize;
+            }
+
+            /* Edge handles */
+            &[data-resize-handle="top"],
+            &[data-resize-handle="bottom"] {
+                @apply h-1.5 left-2 right-2;
+            }
+
+            &[data-resize-handle="top"] {
+                @apply -top-3/4 cursor-ns-resize;
+            }
+
+            &[data-resize-handle="bottom"] {
+                @apply -bottom-3/4 cursor-ns-resize;
+            }
+
+            &[data-resize-handle="left"],
+            &[data-resize-handle="right"] {
+                @apply w-1.5 top-2 bottom-2;
+            }
+
+            &[data-resize-handle="left"] {
+                @apply -left-3/4 cursor-ew-resize;
+            }
+
+            &[data-resize-handle="right"] {
+                @apply -right-3/4 cursor-ew-resize;
+            }
+        }
+
+        [data-resize-state="true"] [data-resize-wrapper] {
+            @apply outline-1 outline-black/25 rounded-xs;
+        }
+    }
+}

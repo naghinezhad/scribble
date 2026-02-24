@@ -12,6 +12,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/nasermirzaei89/env v1.7.0
 	github.com/stretchr/testify v1.11.1
+	github.com/yuin/goldmark v1.7.13
 	golang.org/x/crypto v0.48.0
 	modernc.org/sqlite v1.46.1
 )

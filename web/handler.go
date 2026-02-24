@@ -18,6 +18,9 @@ import (
 	authcontext "github.com/nasermirzaei89/scribble/auth/context"
 	"github.com/nasermirzaei89/scribble/contents"
 	"github.com/nasermirzaei89/scribble/discuss"
+	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/extension"
+	"github.com/yuin/goldmark/renderer/html"
 )
 
 var (
@@ -41,6 +44,7 @@ type Handler struct {
 	cookieStore *sessions.CookieStore
 	sessionName string
 	assetHashes map[string]string
+	markdown    goldmark.Markdown
 }
 
 var _ http.Handler = (*Handler)(nil)
@@ -64,6 +68,18 @@ func NewHandler(
 		cookieStore: cookieStore,
 		sessionName: sessionName,
 		assetHashes: make(map[string]string),
+		markdown:    nil,
+	}
+
+	{
+		h.markdown = goldmark.New(
+			goldmark.WithExtensions(
+				extension.GFM, // tables, strikethrough, task lists
+			),
+			goldmark.WithRendererOptions(
+				html.WithUnsafe(), // allow raw HTML (REMOVE if you want stricter)
+			),
+		)
 	}
 
 	{

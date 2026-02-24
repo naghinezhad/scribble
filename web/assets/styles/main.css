@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+@import "./wysiwyg-editor.css";
 
 @theme {
     --color-primary-50: #eef4fc;

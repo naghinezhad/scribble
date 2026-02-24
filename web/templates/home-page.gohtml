@@ -13,7 +13,7 @@
                         <div class="text-sm opacity-75">{{ formatTime .CreatedAt `Jan 2, 2006 at 3:04pm` }}</div>
                     </div>
                 </div>
-                <p class="as-card-body prose min-w-full" dir="auto">{{ .Content }}</p>
+                <div class="as-card-body prose min-w-full" dir="auto">{{ markdown .Content }}</div>
                 <div class="as-card-footer">
                     <a href="/p/{{ .ID }}#comments" class="as-button variant-text">
                         Comments
