@@ -94,7 +94,7 @@ func (repo *PostRepository) Find(ctx context.Context, postID string) (*contents.
 func (repo *PostRepository) List(ctx context.Context) ([]*contents.Post, error) {
 	q := sq.Select(postColumns()...).
 		From(tablePosts).
-		OrderBy(postFieldID)
+		OrderBy(postFieldCreatedAt + " DESC")
 
 	q = q.RunWith(repo.db)
 
