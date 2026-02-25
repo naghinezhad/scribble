@@ -23,7 +23,7 @@ func TestUserRepository(t *testing.T) {
 
 		var userNotFoundErr *auth.UserNotFoundError
 
-		assert.ErrorAs(t, err, &userNotFoundErr)
+		require.ErrorAs(t, err, &userNotFoundErr)
 		assert.Equal(t, userID, userNotFoundErr.ID)
 	})
 
@@ -33,7 +33,7 @@ func TestUserRepository(t *testing.T) {
 
 		var userByUsernameNotFoundErr *auth.UserByUsernameNotFoundError
 
-		assert.ErrorAs(t, err, &userByUsernameNotFoundErr)
+		require.ErrorAs(t, err, &userByUsernameNotFoundErr)
 		assert.Equal(t, username, userByUsernameNotFoundErr.Username)
 	})
 

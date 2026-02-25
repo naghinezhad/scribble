@@ -45,7 +45,7 @@ func TestUserReactionRepository(t *testing.T) {
 
 		var userReactionNotFoundErr *reactions.UserReactionNotFoundError
 
-		assert.ErrorAs(t, err, &userReactionNotFoundErr)
+		require.ErrorAs(t, err, &userReactionNotFoundErr)
 		assert.Equal(t, reactions.TargetTypePost, userReactionNotFoundErr.TargetType)
 		assert.Equal(t, targetID, userReactionNotFoundErr.TargetID)
 		assert.Equal(t, user1.ID, userReactionNotFoundErr.UserID)
@@ -125,7 +125,7 @@ func TestUserReactionRepository(t *testing.T) {
 
 		var userReactionNotFoundErr *reactions.UserReactionNotFoundError
 
-		assert.ErrorAs(t, err, &userReactionNotFoundErr)
+		require.ErrorAs(t, err, &userReactionNotFoundErr)
 
 		err = repo.DeleteByUserTarget(ctx, reactions.TargetTypePost, targetID, user1.ID)
 		require.NoError(t, err)

@@ -22,6 +22,7 @@ linters:
     - mnd
     - nestif
     - nlreturn
+    - paralleltest
     - revive
     - varnamelen
     - canonicalheader # Disabled due to false positives with http header Hx-Request

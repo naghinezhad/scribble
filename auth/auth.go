@@ -36,8 +36,7 @@ func (svc *Service) Register(ctx context.Context, username, password string) err
 	// TODO: validate username and password
 	_, err := svc.userRepo.FindByUsername(ctx, username)
 	if err != nil {
-		var userByUsernameNotFoundErr *UserByUsernameNotFoundError
-		if !errors.As(err, &userByUsernameNotFoundErr) {
+		if _, ok := errors.AsType[*UserByUsernameNotFoundError](err); !ok {
 			return fmt.Errorf("failed to check if username already exists: %w", err)
 		}
 	} else {
@@ -72,8 +71,7 @@ func (svc *Service) Login(ctx context.Context, username, password string) (*Sess
 	// TODO: validate username and password
 	user, err := svc.userRepo.FindByUsername(ctx, username)
 	if err != nil {
-		var userByUsernameNotFoundErr *UserByUsernameNotFoundError
-		if errors.As(err, &userByUsernameNotFoundErr) {
+		if _, ok := errors.AsType[*UserByUsernameNotFoundError](err); ok {
 			return nil, ErrInvalidCredentials
 		}
 

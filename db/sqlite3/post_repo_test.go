@@ -41,7 +41,7 @@ func TestPostRepository(t *testing.T) {
 
 		var postNotFoundErr contents.PostNotFoundError
 
-		assert.ErrorAs(t, err, &postNotFoundErr)
+		require.ErrorAs(t, err, &postNotFoundErr)
 		assert.Equal(t, postID, postNotFoundErr.ID)
 	})
 

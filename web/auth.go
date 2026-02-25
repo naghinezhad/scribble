@@ -11,28 +11,27 @@ import (
 
 func (h *Handler) authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var sessionValueNotFoundError *SessionValueNotFoundError
-
 		sessionID, err := h.getSessionValue(r, sessionIDKey)
-		if err != nil && !errors.As(err, &sessionValueNotFoundError) {
-			slog.ErrorContext(
-				r.Context(),
-				"error on getting session value",
-				"key",
-				sessionIDKey,
-				"error",
-				err,
-			)
-			http.Error(w, "error on getting session value", http.StatusInternalServerError)
+		if err != nil {
+			if _, ok := errors.AsType[*SessionValueNotFoundError](err); !ok {
+				slog.ErrorContext(
+					r.Context(),
+					"error on getting session value",
+					"key",
+					sessionIDKey,
+					"error",
+					err,
+				)
+				http.Error(w, "error on getting session value", http.StatusInternalServerError)
 
-			return
+				return
+			}
 		}
 
 		if sessionID != nil && sessionID.(string) != "" {
 			session, err := h.authSvc.GetSession(r.Context(), sessionID.(string))
 			if err != nil {
-				var sessionNotFoundError *auth.SessionNotFoundError
-				if errors.As(err, &sessionNotFoundError) {
+				if _, ok := errors.AsType[*auth.SessionNotFoundError](err); ok {
 					err = h.deleteSessionValue(w, r, sessionIDKey)
 					if err != nil {
 						slog.ErrorContext(
@@ -74,8 +73,7 @@ func (h *Handler) authMiddleware(next http.Handler) http.Handler {
 
 			user, err := h.authSvc.GetUser(r.Context(), session.UserID)
 			if err != nil {
-				var userNotFoundError *auth.UserNotFoundError
-				if errors.As(err, &userNotFoundError) {
+				if _, ok := errors.AsType[*auth.UserNotFoundError](err); ok {
 					err = h.authSvc.Logout(r.Context(), session.ID)
 					if err != nil {
 						slog.ErrorContext(

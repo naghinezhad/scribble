@@ -34,7 +34,7 @@ func TestSessionRepository(t *testing.T) {
 
 		var sessionNotFoundErr *auth.SessionNotFoundError
 
-		assert.ErrorAs(t, err, &sessionNotFoundErr)
+		require.ErrorAs(t, err, &sessionNotFoundErr)
 		assert.Equal(t, sessionID, sessionNotFoundErr.ID)
 	})
 
@@ -75,7 +75,7 @@ func TestSessionRepository(t *testing.T) {
 
 		var sessionNotFoundErr *auth.SessionNotFoundError
 
-		assert.ErrorAs(t, err, &sessionNotFoundErr)
+		require.ErrorAs(t, err, &sessionNotFoundErr)
 		assert.Equal(t, session.ID, sessionNotFoundErr.ID)
 	})
 
@@ -86,7 +86,7 @@ func TestSessionRepository(t *testing.T) {
 
 		var sessionNotFoundErr *auth.SessionNotFoundError
 
-		assert.ErrorAs(t, err, &sessionNotFoundErr)
+		require.ErrorAs(t, err, &sessionNotFoundErr)
 		assert.Equal(t, sessionID, sessionNotFoundErr.ID)
 	})
 }

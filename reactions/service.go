@@ -68,8 +68,7 @@ func (svc *Service) ToggleReaction(
 
 	existingReaction, err := svc.userReactionRepo.FindByUserTarget(ctx, targetType, targetID, userID)
 	if err != nil {
-		var notFoundErr *UserReactionNotFoundError
-		if !errors.As(err, &notFoundErr) {
+		if _, ok := errors.AsType[*UserReactionNotFoundError](err); !ok {
 			return fmt.Errorf("failed to get existing reaction: %w", err)
 		}
 	}
@@ -120,8 +119,7 @@ func (svc *Service) GetTargetReactions(
 	if currentUserID != nil && *currentUserID != "" {
 		userReaction, err := svc.userReactionRepo.FindByUserTarget(ctx, targetType, targetID, *currentUserID)
 		if err != nil {
-			var notFoundErr *UserReactionNotFoundError
-			if !errors.As(err, &notFoundErr) {
+			if _, ok := errors.AsType[*UserReactionNotFoundError](err); !ok {
 				return nil, fmt.Errorf("failed to get user reaction: %w", err)
 			}
 		}

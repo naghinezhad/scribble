@@ -367,6 +367,7 @@ func (h *Handler) HandleRegister() http.Handler {
 		err = h.authSvc.Register(r.Context(), username, password)
 		if err != nil {
 			var userAlreadyExistsErr *auth.UserAlreadyExistsError
+
 			switch {
 			case errors.As(err, &userAlreadyExistsErr):
 				http.Error(w, "Username already exists", http.StatusConflict)
@@ -810,9 +811,10 @@ func (h *Handler) HandleToggleReaction() http.Handler {
 
 		err = h.reactionsSvc.ToggleReaction(r.Context(), targetType, targetID, currentUser.ID, emoji)
 		if err != nil {
-			var invalidTargetTypeErr reactions.InvalidTargetTypeError
-
-			var invalidEmojiErr reactions.InvalidEmojiError
+			var (
+				invalidTargetTypeErr reactions.InvalidTargetTypeError
+				invalidEmojiErr      reactions.InvalidEmojiError
+			)
 
 			switch {
 			case errors.As(err, &invalidTargetTypeErr):
