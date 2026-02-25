@@ -1,0 +1,11 @@
+{{ template "page-header.gohtml" . }}
+<main>
+    <div class="as-container px-4 py-8 flex flex-col gap-4">
+        <div>
+            <a href="/p/{{ .PostID }}" class="as-link">← Back to post</a>
+        </div>
+        <h1 class="text-2xl font-semibold">Reply</h1>
+        {{ template "reply-form.gohtml" . }}
+    </div>
+</main>
+{{ template "page-footer.gohtml" . }}

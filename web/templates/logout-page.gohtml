@@ -1,15 +1,12 @@
 {{ template "page-header.gohtml" . }}
 <main>
-    <form id="logout-form" action="/logout" method="POST">
+    <form id="logout-form" action="/logout" method="POST" class="as-container px-4 py-8 flex flex-col gap-4">
         {{ .csrfField }}
-    </form>
-
-    <div class="as-container px-4 py-8 flex flex-col gap-4">
         <h1 class="text-2xl font-semibold">Logout</h1>
         <p>Are you sure you want to sign out?</p>
         <div>
-            <button type="submit" class="as-button" form="logout-form">Sign Out</button>
+            <button type="submit" class="as-button">Sign Out</button>
         </div>
-    </div>
+    </form>
 </main>
 {{ template "page-footer.gohtml" . }}

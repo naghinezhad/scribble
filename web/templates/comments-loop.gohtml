@@ -7,9 +7,12 @@
             <div class="text-sm opacity-75">{{ formatTime .CreatedAt `Jan 2, 2006 at 3:04pm` }}</div>
             <div class="prose min-w-full" dir="auto">{{ markdown .Content }}</div>
             <div class="flex flex-row items-center justify-between gap-2 mt-2">
-                <button class="as-button variant-text" hx-get="/p/{{ .PostID }}/comments/{{ .ID }}/reply" hx-target="closest div" hx-swap="afterend"   hx-on="htmx:afterOnLoad: this.disabled = true">Reply</button>
+                <a href="/p/{{ .PostID }}/comments/{{ .ID }}/reply" class="as-button variant-text"
+                    hx-get="/p/{{ .PostID }}/comments/{{ .ID }}/reply" hx-target="#reply-slot-{{ .ID }}"
+                    hx-swap="innerHTML">Reply</a>
                 {{ template "reactions.gohtml" .Reactions }}
             </div>
+            <div id="reply-slot-{{ .ID }}"></div>
             {{ with .Replies }}
             <div class="pt-4"></div>
             {{ template "comments-loop.gohtml" . }}

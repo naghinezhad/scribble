@@ -1,33 +1,32 @@
 {{ template "page-header.gohtml" . }}
 <main>
-    <form id="register-form" action="/register" method="POST" hx-boost="true">
+    <form id="register-form" action="/register" method="POST" hx-boost="true"
+        class="as-container px-4 py-8 flex flex-col gap-4">
         {{ .csrfField }}
-    </form>
 
-    <div class="as-container px-4 py-8 flex flex-col gap-4">
         <h1 class="text-2xl font-semibold">Register</h1>
         <div class="as-text-field">
             <label for="username">Username</label>
             <div class="as-text-input">
-                <input type="text" id="username" name="username" form="register-form" autofocus required
-                    autocomplete="username">
+                <input type="text" id="username" name="username" autofocus required autocomplete="username">
             </div>
         </div>
         <div class="as-text-field">
             <label for="password">Password</label>
             <div class="as-text-input">
-                <input type="password" id="password" name="password" form="register-form" required
-                    autocomplete="new-password">
+                <input type="password" id="password" name="password" required autocomplete="new-password">
             </div>
         </div>
         <div>
-            <button type="submit" class="as-button is-primary" form="register-form">Sign Up</button>
+            <button type="submit" class="as-button is-primary">
+                Sign Up
+            </button>
         </div>
         <div>
             <p>
                 Already have an account? <a href="/login" class="as-link">Login here</a>.
             </p>
         </div>
-    </div>
+    </form>
 </main>
 {{ template "page-footer.gohtml" . }}

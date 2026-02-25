@@ -2,23 +2,22 @@
     {{ if .IsAuthenticated }}
     <img src="{{ hashed `/images/anonymous.png` }}" alt="{{ .CurrentUser.Username }}'s avatar"
         class="as-avatar size-10">
-    <div class="flex flex-col flex-1">
-        <form id="reply-form" method="POST" action="/p/{{ .PostID }}/comment" hx-boost="true">
-            {{ .csrfField }}
-            <input type="hidden" name="reply_to_id" value="{{ .CommentID }}" required>
-        </form>
+    <form id="reply-form-{{ .CommentID }}" method="POST" action="/p/{{ .PostID }}/comment" hx-boost="true"
+        class="flex flex-col flex-1">
+        {{ .csrfField }}
+        <input type="hidden" name="reply_to_id" value="{{ .CommentID }}" required>
         <div class="font-medium">@{{ .CurrentUser.Username }}</div>
         <div class="as-text-field">
-            <label for="comment">Reply</label>
+            <label for="reply-comment-{{ .CommentID }}">Reply</label>
             <div class="as-text-input">
-                <textarea id="comment" name="comment" form="reply-form" autofocus rows="4" required dir="auto"
+                <textarea id="reply-comment-{{ .CommentID }}" name="comment" autofocus rows="4" required dir="auto"
                     data-wysiwyg-editor></textarea>
             </div>
         </div>
         <div class="flex flex-row gap-2 mt-2">
-            <button type="submit" class="as-button" form="reply-form">Reply</button>
+            <button type="submit" class="as-button">Reply</button>
         </div>
-    </div>
+    </form>
     {{ else }}
     <p><a href="/login" class="as-link pb-4">Log in</a> to reply.</p>
     {{ end }}

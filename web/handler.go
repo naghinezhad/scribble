@@ -750,12 +750,6 @@ func (h *Handler) HandlePostComment() http.Handler {
 
 func (h *Handler) HandleReplyForm() http.Handler {
 	hf := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get(htmxRequestHeader) != htmxRequestValueTrue {
-			http.Error(w, "Direct access is forbidden", http.StatusForbidden)
-
-			return
-		}
-
 		postID := r.PathValue("postId")
 		commentID := r.PathValue("commentId")
 
@@ -763,9 +757,16 @@ func (h *Handler) HandleReplyForm() http.Handler {
 			csrf.TemplateTag: csrf.TemplateField(r),
 			"PostID":         postID,
 			"CommentID":      commentID,
+			"SiteTitle":      "Reply",
 		}
 
-		h.renderTemplate(w, r, "reply-form.gohtml", data)
+		if r.Header.Get(htmxRequestHeader) == htmxRequestValueTrue {
+			h.renderTemplate(w, r, "reply-form.gohtml", data)
+
+			return
+		}
+
+		h.renderTemplate(w, r, "reply-page.gohtml", data)
 	})
 
 	return h.AuthenticatedOnly(hf)

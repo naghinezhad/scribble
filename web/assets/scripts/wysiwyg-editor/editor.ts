@@ -41,20 +41,16 @@ const initWysiwygEditor = (element: HTMLTextAreaElement) => {
         "wysiwyg-editor",
         `${element.id}-wysiwyg-editor`
     );
-    const editorToolbar = createDiv(
-        "wysiwyg-editor-toolbar",
-        `${element.id}-wysiwyg-editor-toolbar`
-    );
+
     const editorContent = document.createElement("div");
     editorContent.id = `${element.id}-wysiwyg-editor-content`;
 
-    editorContainer.append(editorToolbar, editorContent);
+    editorContainer.append(editorContent);
 
     element.insertAdjacentElement("afterend", editorContainer);
-    element.classList.add("!hidden");
+    element.style.display = "none";
 
-    // const editor = new Editor({
-    new Editor({
+    const editor = new Editor({
         element: editorContent,
         extensions: [
             CodeBlock,
@@ -111,6 +107,23 @@ const initWysiwygEditor = (element: HTMLTextAreaElement) => {
             element.value = editor.getMarkdown();
         },
     });
+
+    if (editor.isEmpty) {
+        editor.commands.setContent("");
+    }
+
+    const elementLabel = document.querySelector(`label[for="${element.id}"]`);
+    if (elementLabel) {
+        if (!elementLabel.id) {
+            elementLabel.id = `${element.id}-label`;
+        }
+
+        editorContent.setAttribute("aria-labelledby", elementLabel.id);
+
+        elementLabel.addEventListener("click", () => {
+            editor.commands.focus();
+        });
+    }
 };
 
 export { initWysiwygEditor };
