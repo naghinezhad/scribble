@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/nasermirzaei89/scribble/auth"
+	"github.com/nasermirzaei89/scribble/authentication"
 )
 
 const tableSessions = "sessions"
@@ -16,7 +16,7 @@ type SessionRepository struct {
 	db *sql.DB
 }
 
-var _ auth.SessionRepository = (*SessionRepository)(nil)
+var _ authentication.SessionRepository = (*SessionRepository)(nil)
 
 func NewSessionRepository(db *sql.DB) *SessionRepository {
 	return &SessionRepository{db: db}
@@ -38,8 +38,8 @@ func sessionColumns() []string {
 	}
 }
 
-func scanSession(row sq.RowScanner) (*auth.Session, error) {
-	var session auth.Session
+func scanSession(row sq.RowScanner) (*authentication.Session, error) {
+	var session authentication.Session
 
 	err := row.Scan(
 		&session.ID,
@@ -54,7 +54,7 @@ func scanSession(row sq.RowScanner) (*auth.Session, error) {
 	return &session, nil
 }
 
-func (repo *SessionRepository) Insert(ctx context.Context, session *auth.Session) error {
+func (repo *SessionRepository) Insert(ctx context.Context, session *authentication.Session) error {
 	q := sq.Insert(tableSessions).
 		Columns(sessionColumns()...).
 		Values(session.ID, session.UserID, session.CreatedAt, session.ExpiresAt)
@@ -69,7 +69,7 @@ func (repo *SessionRepository) Insert(ctx context.Context, session *auth.Session
 	return nil
 }
 
-func (repo *SessionRepository) Find(ctx context.Context, id string) (*auth.Session, error) {
+func (repo *SessionRepository) Find(ctx context.Context, id string) (*authentication.Session, error) {
 	q := sq.Select(sessionColumns()...).
 		From(tableSessions).
 		Where(sq.Eq{sessionFieldID: id})
@@ -81,7 +81,7 @@ func (repo *SessionRepository) Find(ctx context.Context, id string) (*auth.Sessi
 	session, err := scanSession(row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, &auth.SessionNotFoundError{ID: id}
+			return nil, &authentication.SessionNotFoundError{ID: id}
 		}
 
 		return nil, fmt.Errorf("failed to scan session: %w", err)
@@ -107,7 +107,7 @@ func (repo *SessionRepository) Delete(ctx context.Context, id string) error {
 	}
 
 	if rowsAffected == 0 {
-		return &auth.SessionNotFoundError{ID: id}
+		return &authentication.SessionNotFoundError{ID: id}
 	}
 
 	return nil

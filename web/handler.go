@@ -16,8 +16,8 @@ import (
 
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
-	"github.com/nasermirzaei89/scribble/auth"
-	authcontext "github.com/nasermirzaei89/scribble/auth/context"
+	"github.com/nasermirzaei89/scribble/authentication"
+	authcontext "github.com/nasermirzaei89/scribble/authentication/context"
 	"github.com/nasermirzaei89/scribble/contents"
 	"github.com/nasermirzaei89/scribble/discuss"
 	"github.com/nasermirzaei89/scribble/reactions"
@@ -46,8 +46,8 @@ type Handler struct {
 	handler      http.Handler
 	tpl          *template.Template
 	static       fs.FS
-	authSvc      *auth.Service
-	contentsSvc  *contents.Service
+	authSvc      *authentication.Service
+	contentsSvc  contents.Service
 	discussSvc   *discuss.Service
 	reactionsSvc *reactions.Service
 	cookieStore  *sessions.CookieStore
@@ -59,8 +59,8 @@ type Handler struct {
 var _ http.Handler = (*Handler)(nil)
 
 func NewHandler(
-	authSvc *auth.Service,
-	contentsSvc *contents.Service,
+	authSvc *authentication.Service,
+	contentsSvc contents.Service,
 	discussSvc *discuss.Service,
 	reactionsSvc *reactions.Service,
 	cookieStore *sessions.CookieStore,
@@ -181,7 +181,7 @@ func recoverMiddleware(next http.Handler) http.Handler {
 
 func (h *Handler) renderTemplate(w http.ResponseWriter, r *http.Request, name string, extraData map[string]any,
 ) {
-	var currentUser *auth.User
+	var currentUser *authentication.User
 
 	if isAuthenticated(r) {
 		var err error
@@ -270,7 +270,7 @@ func (h *Handler) HandleHomePage(w http.ResponseWriter, r *http.Request) {
 type FullPost struct {
 	contents.Post
 
-	Author        *auth.User
+	Author        *authentication.User
 	CommentsCount *int
 	Comments      []*CommentWithAuthor
 	Reactions     *ReactionWidgetData
@@ -279,7 +279,7 @@ type FullPost struct {
 type CommentWithAuthor struct {
 	discuss.Comment
 
-	Author *auth.User
+	Author *authentication.User
 
 	Replies   []*CommentWithAuthor
 	Reactions *ReactionWidgetData
@@ -366,7 +366,7 @@ func (h *Handler) HandleRegister() http.Handler {
 
 		err = h.authSvc.Register(r.Context(), username, password)
 		if err != nil {
-			var userAlreadyExistsErr *auth.UserAlreadyExistsError
+			var userAlreadyExistsErr *authentication.UserAlreadyExistsError
 
 			switch {
 			case errors.As(err, &userAlreadyExistsErr):
@@ -414,7 +414,7 @@ func (h *Handler) HandleLogin() http.Handler {
 		session, err := h.authSvc.Login(r.Context(), username, password)
 		if err != nil {
 			switch {
-			case errors.Is(err, auth.ErrInvalidCredentials):
+			case errors.Is(err, authentication.ErrInvalidCredentials):
 				http.Error(w, "Invalid username or password", http.StatusUnauthorized)
 			default:
 				slog.ErrorContext(r.Context(), "failed to login user", "error", err)

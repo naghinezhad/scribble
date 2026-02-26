@@ -3,8 +3,10 @@ module github.com/nasermirzaei89/scribble
 go 1.26.0
 
 require (
+	github.com/Blank-Xu/sql-adapter v1.2.0
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/SladkyCitron/slogcolor v1.8.0
+	github.com/casbin/casbin/v3 v3.10.0
 	github.com/golang-migrate/migrate/v4 v4.19.1
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/csrf v1.7.3
@@ -54,12 +56,14 @@ require (
 	github.com/bep/golibsass v1.2.0 // indirect
 	github.com/bkielbasa/cyclop v1.2.3 // indirect
 	github.com/blizzy78/varnamelen v0.8.0 // indirect
+	github.com/bmatcuk/doublestar/v4 v4.9.1 // indirect
 	github.com/bombsimon/wsl/v4 v4.7.0 // indirect
 	github.com/bombsimon/wsl/v5 v5.6.0 // indirect
 	github.com/breml/bidichk v0.3.3 // indirect
 	github.com/breml/errchkjson v0.4.1 // indirect
 	github.com/butuzov/ireturn v0.4.0 // indirect
 	github.com/butuzov/mirror v1.3.0 // indirect
+	github.com/casbin/govaluate v1.10.0 // indirect
 	github.com/catenacyber/perfsprint v0.10.1 // indirect
 	github.com/ccojocar/zxcvbn-go v1.0.4 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect

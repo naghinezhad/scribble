@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/nasermirzaei89/scribble/auth"
+	"github.com/nasermirzaei89/scribble/authentication"
 	"github.com/nasermirzaei89/scribble/contents"
-	"github.com/nasermirzaei89/scribble/db/sqlite3"
+	"github.com/nasermirzaei89/scribble/database/sqlite3"
 	"github.com/nasermirzaei89/scribble/discuss"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -20,7 +20,7 @@ func TestCommentRepository(t *testing.T) {
 	postRepo := sqlite3.NewPostRepository(db)
 	commentRepo := sqlite3.NewCommentRepository(db)
 
-	user := &auth.User{
+	user := &authentication.User{
 		ID:           uuid.NewString(),
 		Username:     "comment-user-" + uuid.NewString(),
 		PasswordHash: "password-hash",

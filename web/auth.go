@@ -5,8 +5,8 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/nasermirzaei89/scribble/auth"
-	authcontext "github.com/nasermirzaei89/scribble/auth/context"
+	"github.com/nasermirzaei89/scribble/authentication"
+	authcontext "github.com/nasermirzaei89/scribble/authentication/context"
 )
 
 func (h *Handler) authMiddleware(next http.Handler) http.Handler {
@@ -31,7 +31,7 @@ func (h *Handler) authMiddleware(next http.Handler) http.Handler {
 		if sessionID != nil && sessionID.(string) != "" {
 			session, err := h.authSvc.GetSession(r.Context(), sessionID.(string))
 			if err != nil {
-				if _, ok := errors.AsType[*auth.SessionNotFoundError](err); ok {
+				if _, ok := errors.AsType[*authentication.SessionNotFoundError](err); ok {
 					err = h.deleteSessionValue(w, r, sessionIDKey)
 					if err != nil {
 						slog.ErrorContext(
@@ -73,7 +73,7 @@ func (h *Handler) authMiddleware(next http.Handler) http.Handler {
 
 			user, err := h.authSvc.GetUser(r.Context(), session.UserID)
 			if err != nil {
-				if _, ok := errors.AsType[*auth.UserNotFoundError](err); ok {
+				if _, ok := errors.AsType[*authentication.UserNotFoundError](err); ok {
 					err = h.authSvc.Logout(r.Context(), session.ID)
 					if err != nil {
 						slog.ErrorContext(

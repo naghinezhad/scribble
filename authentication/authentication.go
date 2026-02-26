@@ -1,4 +1,4 @@
-package auth
+package authentication
 
 import (
 	"context"
@@ -7,19 +7,22 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	authcontext "github.com/nasermirzaei89/scribble/auth/context"
+	authcontext "github.com/nasermirzaei89/scribble/authentication/context"
+	"github.com/nasermirzaei89/scribble/authorization"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type Service struct {
 	userRepo    UserRepository
 	sessionRepo SessionRepository
+	authzClient *authorization.Client
 }
 
-func NewService(userRepo UserRepository, sessionRepo SessionRepository) *Service {
+func NewService(userRepo UserRepository, sessionRepo SessionRepository, authzClient *authorization.Client) *Service {
 	return &Service{
 		userRepo:    userRepo,
 		sessionRepo: sessionRepo,
+		authzClient: authzClient,
 	}
 }
 
@@ -58,6 +61,11 @@ func (svc *Service) Register(ctx context.Context, username, password string) err
 	err = svc.userRepo.Insert(ctx, user)
 	if err != nil {
 		return fmt.Errorf("failed to register user: %w", err)
+	}
+
+	err = svc.authzClient.AddToGroup(ctx, user.ID, authcontext.Authenticated)
+	if err != nil {
+		return fmt.Errorf("failed to add user to authenticated group: %w", err)
 	}
 
 	return nil

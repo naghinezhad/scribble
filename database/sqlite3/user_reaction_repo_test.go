@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/nasermirzaei89/scribble/auth"
-	"github.com/nasermirzaei89/scribble/db/sqlite3"
+	"github.com/nasermirzaei89/scribble/authentication"
+	"github.com/nasermirzaei89/scribble/database/sqlite3"
 	"github.com/nasermirzaei89/scribble/reactions"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -18,14 +18,14 @@ func TestUserReactionRepository(t *testing.T) {
 	userRepo := sqlite3.NewUserRepository(db)
 	repo := sqlite3.NewUserReactionRepository(db)
 
-	user1 := &auth.User{
+	user1 := &authentication.User{
 		ID:           uuid.NewString(),
 		Username:     "reaction-user-" + uuid.NewString(),
 		PasswordHash: "password-hash",
 		RegisteredAt: time.Date(2026, 2, 24, 10, 0, 0, 0, time.UTC),
 	}
 
-	user2 := &auth.User{
+	user2 := &authentication.User{
 		ID:           uuid.NewString(),
 		Username:     "reaction-user-" + uuid.NewString(),
 		PasswordHash: "password-hash",

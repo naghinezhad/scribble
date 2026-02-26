@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/nasermirzaei89/scribble/auth"
+	"github.com/nasermirzaei89/scribble/authentication"
 )
 
 const tableUsers = "users"
@@ -16,7 +16,7 @@ type UserRepository struct {
 	db *sql.DB
 }
 
-var _ auth.UserRepository = (*UserRepository)(nil)
+var _ authentication.UserRepository = (*UserRepository)(nil)
 
 func NewUserRepository(db *sql.DB) *UserRepository {
 	return &UserRepository{db: db}
@@ -38,8 +38,8 @@ func userColumns() []string {
 	}
 }
 
-func scanUser(row sq.RowScanner) (*auth.User, error) {
-	var user auth.User
+func scanUser(row sq.RowScanner) (*authentication.User, error) {
+	var user authentication.User
 
 	err := row.Scan(
 		&user.ID,
@@ -54,7 +54,7 @@ func scanUser(row sq.RowScanner) (*auth.User, error) {
 	return &user, nil
 }
 
-func (repo *UserRepository) Insert(ctx context.Context, user *auth.User) error {
+func (repo *UserRepository) Insert(ctx context.Context, user *authentication.User) error {
 	q := sq.Insert(tableUsers).
 		Columns(userColumns()...).
 		Values(user.ID, user.Username, user.PasswordHash, user.RegisteredAt)
@@ -69,7 +69,7 @@ func (repo *UserRepository) Insert(ctx context.Context, user *auth.User) error {
 	return nil
 }
 
-func (repo *UserRepository) Find(ctx context.Context, userID string) (*auth.User, error) {
+func (repo *UserRepository) Find(ctx context.Context, userID string) (*authentication.User, error) {
 	q := sq.Select(userColumns()...).
 		From(tableUsers).
 		Where(sq.Eq{userFieldID: userID})
@@ -81,7 +81,7 @@ func (repo *UserRepository) Find(ctx context.Context, userID string) (*auth.User
 	user, err := scanUser(row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, &auth.UserNotFoundError{ID: userID}
+			return nil, &authentication.UserNotFoundError{ID: userID}
 		}
 
 		return nil, fmt.Errorf("failed to scan user: %w", err)
@@ -90,7 +90,7 @@ func (repo *UserRepository) Find(ctx context.Context, userID string) (*auth.User
 	return user, nil
 }
 
-func (repo *UserRepository) FindByUsername(ctx context.Context, username string) (*auth.User, error) {
+func (repo *UserRepository) FindByUsername(ctx context.Context, username string) (*authentication.User, error) {
 	q := sq.Select(userColumns()...).
 		From(tableUsers).
 		Where(sq.Eq{userFieldUsername: username})
@@ -102,7 +102,7 @@ func (repo *UserRepository) FindByUsername(ctx context.Context, username string)
 	user, err := scanUser(row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, &auth.UserByUsernameNotFoundError{Username: username}
+			return nil, &authentication.UserByUsernameNotFoundError{Username: username}
 		}
 
 		return nil, fmt.Errorf("failed to scan user: %w", err)

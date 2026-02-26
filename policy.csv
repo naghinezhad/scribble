@@ -1,0 +1,9 @@
+g, system:anonymous, system:unauthenticated
+
+p, system:group:root, *, *, *
+
+p, system:authenticated, github.com/nasermirzaei89/scribble/contents, -, createPost
+p, system:authenticated, github.com/nasermirzaei89/scribble/contents, -, listPosts
+p, system:unauthenticated, github.com/nasermirzaei89/scribble/contents, -, listPosts
+p, system:authenticated, github.com/nasermirzaei89/scribble/contents, *, getPost
+p, system:unauthenticated, github.com/nasermirzaei89/scribble/contents, *, getPost

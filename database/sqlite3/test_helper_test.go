@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/nasermirzaei89/scribble/db/sqlite3"
+	"github.com/nasermirzaei89/scribble/database/sqlite3"
 	"github.com/stretchr/testify/require"
 )
 

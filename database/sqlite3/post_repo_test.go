@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/nasermirzaei89/scribble/auth"
+	"github.com/nasermirzaei89/scribble/authentication"
 	"github.com/nasermirzaei89/scribble/contents"
-	"github.com/nasermirzaei89/scribble/db/sqlite3"
+	"github.com/nasermirzaei89/scribble/database/sqlite3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -18,7 +18,7 @@ func TestPostRepository(t *testing.T) {
 	userRepo := sqlite3.NewUserRepository(db)
 	postRepo := sqlite3.NewPostRepository(db)
 
-	user := &auth.User{
+	user := &authentication.User{
 		ID:           uuid.NewString(),
 		Username:     "post-user-" + uuid.NewString(),
 		PasswordHash: "password-hash",

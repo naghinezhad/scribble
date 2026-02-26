@@ -6,14 +6,29 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/nasermirzaei89/scribble/authorization"
 )
 
-type Service struct {
+const ServiceName = "github.com/nasermirzaei89/scribble/contents"
+
+type Service interface {
+	CreatePost(ctx context.Context, req CreatePostRequest) (*Post, error)
+	ListPosts(ctx context.Context) ([]*Post, error)
+	GetPost(ctx context.Context, postID string) (*Post, error)
+}
+
+type BaseService struct {
 	postRepo PostRepository
 }
 
-func NewService(postRepo PostRepository) *Service {
-	return &Service{
+var _ Service = (*BaseService)(nil)
+
+func NewService(postRepo PostRepository, authzClient *authorization.Client) Service { //nolint:ireturn
+	return NewAuthorizationMiddleware(authzClient, NewBaseService(postRepo))
+}
+
+func NewBaseService(postRepo PostRepository) *BaseService {
+	return &BaseService{
 		postRepo: postRepo,
 	}
 }
@@ -23,7 +38,7 @@ type CreatePostRequest struct {
 	Content  string
 }
 
-func (svc *Service) CreatePost(ctx context.Context, req CreatePostRequest) (*Post, error) {
+func (svc *BaseService) CreatePost(ctx context.Context, req CreatePostRequest) (*Post, error) {
 	post := &Post{
 		ID:        uuid.NewString(),
 		AuthorID:  req.AuthorID,
@@ -39,7 +54,7 @@ func (svc *Service) CreatePost(ctx context.Context, req CreatePostRequest) (*Pos
 	return post, nil
 }
 
-func (svc *Service) ListPosts(ctx context.Context) ([]*Post, error) {
+func (svc *BaseService) ListPosts(ctx context.Context) ([]*Post, error) {
 	posts, err := svc.postRepo.List(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list posts: %w", err)
@@ -48,7 +63,7 @@ func (svc *Service) ListPosts(ctx context.Context) ([]*Post, error) {
 	return posts, nil
 }
 
-func (svc *Service) GetPost(ctx context.Context, postID string) (*Post, error) {
+func (svc *BaseService) GetPost(ctx context.Context, postID string) (*Post, error) {
 	post, err := svc.postRepo.Find(ctx, postID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find post: %w", err)

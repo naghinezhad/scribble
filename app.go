@@ -3,6 +3,7 @@ package scribble
 import (
 	"context"
 	"database/sql"
+	_ "embed"
 	"fmt"
 	"log/slog"
 	"os"
@@ -10,9 +11,11 @@ import (
 
 	"github.com/gorilla/sessions"
 	"github.com/nasermirzaei89/env"
-	"github.com/nasermirzaei89/scribble/auth"
+	"github.com/nasermirzaei89/scribble/authentication"
+	"github.com/nasermirzaei89/scribble/authorization"
+	"github.com/nasermirzaei89/scribble/authorization/casbin"
 	"github.com/nasermirzaei89/scribble/contents"
-	"github.com/nasermirzaei89/scribble/db/sqlite3"
+	"github.com/nasermirzaei89/scribble/database/sqlite3"
 	"github.com/nasermirzaei89/scribble/discuss"
 	"github.com/nasermirzaei89/scribble/random"
 	"github.com/nasermirzaei89/scribble/reactions"
@@ -25,6 +28,9 @@ type App struct {
 	handler *web.Handler
 	db      *sql.DB
 }
+
+//go:embed policy.csv
+var defaultAuthorizationPolicyContent string
 
 func NewApp(ctx context.Context) (*App, error) {
 	db, err := sqlite3.NewDB(ctx, env.GetString("DB_DSN", "file::memory:?cache=shared"))
@@ -43,8 +49,20 @@ func NewApp(ctx context.Context) (*App, error) {
 	commentRepo := sqlite3.NewCommentRepository(db)
 	userReactionRepo := sqlite3.NewUserReactionRepository(db)
 
-	authSvc := auth.NewService(userRepo, sessionRepo)
-	contentsSvc := contents.NewService(postRepo)
+	authzProvider, err := newAuthorizationProvider(ctx, db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create authorization provider: %w", err)
+	}
+
+	authzSvc, err := authorization.NewService(authzProvider)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create authorization service: %w", err)
+	}
+
+	authzClient := authorization.NewClient(authzSvc)
+	authSvc := authentication.NewService(userRepo, sessionRepo, authzClient)
+
+	contentsSvc := contents.NewService(postRepo, authzClient)
 	discussSvc := discuss.NewService(commentRepo)
 	reactionsSvc := reactions.NewService(userReactionRepo)
 
@@ -136,4 +154,43 @@ func GetLogLevelFromEnv() slog.Level {
 
 		return slog.LevelInfo
 	}
+}
+
+func newAuthorizationProvider(ctx context.Context, db *sql.DB) (*casbin.AuthorizationProvider, error) {
+	adapter, err := casbin.NewSQLAdapter(db, "sqlite3", "casbin_rule")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create authorization adapter: %w", err)
+	}
+
+	provider, err := casbin.NewAuthorizationProvider(adapter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create authorization provider: %w", err)
+	}
+
+	policyContent, err := loadPolicyContent()
+	if err != nil {
+		return nil, fmt.Errorf("failed to load authorization policy content: %w", err)
+	}
+
+	err = provider.AddPolicyFromCSV(ctx, policyContent)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add authorization policy from csv: %w", err)
+	}
+
+	return provider, nil
+}
+
+func loadPolicyContent() (string, error) {
+	policyFilePath := env.GetString("AUTHORIZATION_POLICY_FILE", "")
+
+	if policyFilePath == "" {
+		return defaultAuthorizationPolicyContent, nil
+	}
+
+	content, err := os.ReadFile(policyFilePath) // nolint:gosec
+	if err != nil {
+		return "", fmt.Errorf("failed to read policy file %q: %w", policyFilePath, err)
+	}
+
+	return string(content), nil
 }

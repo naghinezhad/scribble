@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/nasermirzaei89/scribble/auth"
-	"github.com/nasermirzaei89/scribble/db/sqlite3"
+	"github.com/nasermirzaei89/scribble/authentication"
+	"github.com/nasermirzaei89/scribble/database/sqlite3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -17,7 +17,7 @@ func TestSessionRepository(t *testing.T) {
 	userRepo := sqlite3.NewUserRepository(db)
 	sessionRepo := sqlite3.NewSessionRepository(db)
 
-	user := &auth.User{
+	user := &authentication.User{
 		ID:           uuid.NewString(),
 		Username:     "session-user-" + uuid.NewString(),
 		PasswordHash: "password-hash",
@@ -32,14 +32,14 @@ func TestSessionRepository(t *testing.T) {
 
 		_, err := sessionRepo.Find(ctx, sessionID)
 
-		var sessionNotFoundErr *auth.SessionNotFoundError
+		var sessionNotFoundErr *authentication.SessionNotFoundError
 
 		require.ErrorAs(t, err, &sessionNotFoundErr)
 		assert.Equal(t, sessionID, sessionNotFoundErr.ID)
 	})
 
 	t.Run("Insert and find", func(t *testing.T) {
-		session := &auth.Session{
+		session := &authentication.Session{
 			ID:        uuid.NewString(),
 			UserID:    user.ID,
 			CreatedAt: time.Date(2026, 2, 24, 11, 0, 0, 0, time.UTC),
@@ -58,7 +58,7 @@ func TestSessionRepository(t *testing.T) {
 	})
 
 	t.Run("Delete existing", func(t *testing.T) {
-		session := &auth.Session{
+		session := &authentication.Session{
 			ID:        uuid.NewString(),
 			UserID:    user.ID,
 			CreatedAt: time.Date(2026, 2, 24, 12, 0, 0, 0, time.UTC),
@@ -73,7 +73,7 @@ func TestSessionRepository(t *testing.T) {
 
 		_, err = sessionRepo.Find(ctx, session.ID)
 
-		var sessionNotFoundErr *auth.SessionNotFoundError
+		var sessionNotFoundErr *authentication.SessionNotFoundError
 
 		require.ErrorAs(t, err, &sessionNotFoundErr)
 		assert.Equal(t, session.ID, sessionNotFoundErr.ID)
@@ -84,7 +84,7 @@ func TestSessionRepository(t *testing.T) {
 
 		err := sessionRepo.Delete(ctx, sessionID)
 
-		var sessionNotFoundErr *auth.SessionNotFoundError
+		var sessionNotFoundErr *authentication.SessionNotFoundError
 
 		require.ErrorAs(t, err, &sessionNotFoundErr)
 		assert.Equal(t, sessionID, sessionNotFoundErr.ID)
