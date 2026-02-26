@@ -41,11 +41,11 @@ func TestAuthorizationMiddleware(t *testing.T) {
 	tmpFile := filepath.Join(tmpDir, "policy.csv")
 	content := []byte(`g, system:anonymous, system:unauthenticated
 
-p, system:authenticated, github.com/nasermirzaei89/scribble/discuss, *, createComment
-p, system:authenticated, github.com/nasermirzaei89/scribble/discuss, *, listComments
-p, system:unauthenticated, github.com/nasermirzaei89/scribble/discuss, *, listComments
-p, system:authenticated, github.com/nasermirzaei89/scribble/discuss, *, countComments
-p, system:unauthenticated, github.com/nasermirzaei89/scribble/discuss, *, countComments
+p, system:authenticated, github.com/nasermirzaei89/scribble/discuss, -, createComment
+p, system:authenticated, github.com/nasermirzaei89/scribble/discuss, -, listComments
+p, system:unauthenticated, github.com/nasermirzaei89/scribble/discuss, -, listComments
+p, system:authenticated, github.com/nasermirzaei89/scribble/discuss, -, countComments
+p, system:unauthenticated, github.com/nasermirzaei89/scribble/discuss, -, countComments
 `)
 
 	err := os.WriteFile(tmpFile, content, 0o600)

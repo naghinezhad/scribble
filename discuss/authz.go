@@ -28,7 +28,7 @@ func NewAuthorizationMiddleware(authzClient *authorization.Client, next Service)
 }
 
 func (mw *AuthorizationMiddleware) CreateComment(ctx context.Context, req CreateCommentRequest) (*Comment, error) {
-	err := mw.authzClient.CheckAccess(ctx, ServiceName, req.PostID, ActionCreateComment)
+	err := mw.authzClient.CheckAccess(ctx, ServiceName, "", ActionCreateComment)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check authorization: %w", err)
 	}
@@ -42,7 +42,7 @@ func (mw *AuthorizationMiddleware) CreateComment(ctx context.Context, req Create
 }
 
 func (mw *AuthorizationMiddleware) ListComments(ctx context.Context, postID string) ([]*Comment, error) {
-	err := mw.authzClient.CheckAccess(ctx, ServiceName, postID, ActionListComments)
+	err := mw.authzClient.CheckAccess(ctx, ServiceName, "", ActionListComments)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check authorization: %w", err)
 	}
@@ -56,7 +56,7 @@ func (mw *AuthorizationMiddleware) ListComments(ctx context.Context, postID stri
 }
 
 func (mw *AuthorizationMiddleware) CountComments(ctx context.Context, postID string) (int, error) {
-	err := mw.authzClient.CheckAccess(ctx, ServiceName, postID, ActionCountComments)
+	err := mw.authzClient.CheckAccess(ctx, ServiceName, "", ActionCountComments)
 	if err != nil {
 		return 0, fmt.Errorf("failed to check authorization: %w", err)
 	}
