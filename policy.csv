@@ -13,3 +13,7 @@ p, system:authenticated, github.com/nasermirzaei89/scribble/discuss, *, listComm
 p, system:unauthenticated, github.com/nasermirzaei89/scribble/discuss, *, listComments
 p, system:authenticated, github.com/nasermirzaei89/scribble/discuss, *, countComments
 p, system:unauthenticated, github.com/nasermirzaei89/scribble/discuss, *, countComments
+
+p, system:authenticated, github.com/nasermirzaei89/scribble/reactions, *, toggleReaction
+p, system:authenticated, github.com/nasermirzaei89/scribble/reactions, *, getTargetReactions
+p, system:unauthenticated, github.com/nasermirzaei89/scribble/reactions, *, getTargetReactions

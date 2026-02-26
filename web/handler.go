@@ -49,7 +49,7 @@ type Handler struct {
 	authSvc      *authentication.Service
 	contentsSvc  contents.Service
 	discussSvc   discuss.Service
-	reactionsSvc *reactions.Service
+	reactionsSvc reactions.Service
 	cookieStore  *sessions.CookieStore
 	sessionName  string
 	assetHashes  map[string]string
@@ -62,7 +62,7 @@ func NewHandler(
 	authSvc *authentication.Service,
 	contentsSvc contents.Service,
 	discussSvc discuss.Service,
-	reactionsSvc *reactions.Service,
+	reactionsSvc reactions.Service,
 	cookieStore *sessions.CookieStore,
 	sessionName string,
 	csrfAuthKeys []byte,

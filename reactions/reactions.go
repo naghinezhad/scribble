@@ -6,14 +6,35 @@ import (
 	"fmt"
 	"slices"
 	"time"
+
+	"github.com/nasermirzaei89/scribble/authorization"
 )
 
-type Service struct {
+const ServiceName = "github.com/nasermirzaei89/scribble/reactions"
+
+type Service interface {
+	AllowedEmojis(ctx context.Context, targetType TargetType, targetID string) ([]string, error)
+	ToggleReaction(ctx context.Context, targetType TargetType, targetID string, userID string, emoji string) error
+	GetTargetReactions(
+		ctx context.Context,
+		targetType TargetType,
+		targetID string,
+		currentUserID *string,
+	) (*TargetReactions, error)
+}
+
+type BaseService struct {
 	userReactionRepo UserReactionRepository
 }
 
-func NewService(userReactionRepo UserReactionRepository) *Service {
-	return &Service{userReactionRepo: userReactionRepo}
+var _ Service = (*BaseService)(nil)
+
+func NewService(userReactionRepo UserReactionRepository, authzClient *authorization.Client) Service {
+	return NewAuthorizationMiddleware(authzClient, NewBaseService(userReactionRepo))
+}
+
+func NewBaseService(userReactionRepo UserReactionRepository) *BaseService {
+	return &BaseService{userReactionRepo: userReactionRepo}
 }
 
 type ReactionOption struct {
@@ -29,7 +50,7 @@ type TargetReactions struct {
 	Options    []ReactionOption
 }
 
-func (svc *Service) AllowedEmojis(
+func (svc *BaseService) AllowedEmojis(
 	_ context.Context,
 	targetType TargetType,
 	_ string,
@@ -41,7 +62,7 @@ func (svc *Service) AllowedEmojis(
 	return []string{"👍", "👎", "😂"}, nil
 }
 
-func (svc *Service) ToggleReaction(
+func (svc *BaseService) ToggleReaction(
 	ctx context.Context,
 	targetType TargetType,
 	targetID string,
@@ -98,7 +119,7 @@ func (svc *Service) ToggleReaction(
 	return nil
 }
 
-func (svc *Service) GetTargetReactions(
+func (svc *BaseService) GetTargetReactions(
 	ctx context.Context,
 	targetType TargetType,
 	targetID string,
