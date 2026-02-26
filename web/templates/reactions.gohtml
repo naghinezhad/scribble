@@ -7,7 +7,7 @@
     <form method="POST" action="/react/{{ $.TargetType }}/{{ $.TargetID }}"
         hx-post="/react/{{ $.TargetType }}/{{ $.TargetID }}" hx-target="#reactions-{{ $.TargetType }}-{{ $.TargetID }}"
         hx-swap="outerHTML" hx-push-url="false">
-        {{ $.CSRFField }}
+        {{ index $ "csrfField" }}
         <input type="hidden" name="emoji" value="{{ .Emoji }}">
         <input type="hidden" name="return_to" value="{{ $.ReturnTo }}">
         <button type="submit" class="as-button variant-text {{ if .Selected }}is-primary{{ end }}"
@@ -20,8 +20,7 @@
         <span>{{ .Emoji }} {{ .Count }}</span>
     </a>
     {{ end }}
-    {{ end }}
-    {{ if not .Available }}
+    {{ else }}
     <button type="button" class="as-button variant-text {{ if .Selected }}is-primary{{ end }}" disabled
         aria-disabled="true" aria-label="Reaction {{ .Emoji }} ({{ .Count }}) - no longer available"
         title="Reaction is no longer available">

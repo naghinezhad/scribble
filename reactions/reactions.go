@@ -7,6 +7,7 @@ import (
 	"slices"
 	"time"
 
+	authcontext "github.com/nasermirzaei89/scribble/authentication/context"
 	"github.com/nasermirzaei89/scribble/authorization"
 )
 
@@ -14,12 +15,11 @@ const ServiceName = "github.com/nasermirzaei89/scribble/reactions"
 
 type Service interface {
 	AllowedEmojis(ctx context.Context, targetType TargetType, targetID string) ([]string, error)
-	ToggleReaction(ctx context.Context, targetType TargetType, targetID string, userID string, emoji string) error
-	GetTargetReactions(
+	ToggleMyReaction(ctx context.Context, targetType TargetType, targetID string, emoji string) error
+	GetMyReactions(
 		ctx context.Context,
 		targetType TargetType,
 		targetID string,
-		currentUserID *string,
 	) (*TargetReactions, error)
 }
 
@@ -29,7 +29,7 @@ type BaseService struct {
 
 var _ Service = (*BaseService)(nil)
 
-func NewService(userReactionRepo UserReactionRepository, authzClient *authorization.Client) Service {
+func NewService(userReactionRepo UserReactionRepository, authzClient *authorization.Client) Service { //nolint:ireturn
 	return NewAuthorizationMiddleware(authzClient, NewBaseService(userReactionRepo))
 }
 
@@ -62,13 +62,14 @@ func (svc *BaseService) AllowedEmojis(
 	return []string{"👍", "👎", "😂"}, nil
 }
 
-func (svc *BaseService) ToggleReaction(
+func (svc *BaseService) ToggleMyReaction(
 	ctx context.Context,
 	targetType TargetType,
 	targetID string,
-	userID string,
 	emoji string,
 ) error {
+	userID := authcontext.GetSubject(ctx)
+
 	if !targetType.IsValid() {
 		return InvalidTargetTypeError{TargetType: targetType}
 	}
@@ -119,11 +120,10 @@ func (svc *BaseService) ToggleReaction(
 	return nil
 }
 
-func (svc *BaseService) GetTargetReactions(
+func (svc *BaseService) GetMyReactions(
 	ctx context.Context,
 	targetType TargetType,
 	targetID string,
-	currentUserID *string,
 ) (*TargetReactions, error) {
 	allowedEmojis, err := svc.AllowedEmojis(ctx, targetType, targetID)
 	if err != nil {
@@ -136,9 +136,10 @@ func (svc *BaseService) GetTargetReactions(
 	}
 
 	selectedEmoji := ""
+	currentUserID := authcontext.GetSubject(ctx)
 
-	if currentUserID != nil && *currentUserID != "" {
-		userReaction, err := svc.userReactionRepo.FindByUserTarget(ctx, targetType, targetID, *currentUserID)
+	if currentUserID != "" && currentUserID != authcontext.Anonymous {
+		userReaction, err := svc.userReactionRepo.FindByUserTarget(ctx, targetType, targetID, currentUserID)
 		if err != nil {
 			if _, ok := errors.AsType[*UserReactionNotFoundError](err); !ok {
 				return nil, fmt.Errorf("failed to get user reaction: %w", err)

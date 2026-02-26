@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	ActionToggleReaction     = "toggleReaction"
-	ActionGetTargetReactions = "getTargetReactions"
+	ActionToggleReaction = "toggleReaction"
+	ActionGetMyReactions = "getMyReactions"
 )
 
 type AuthorizationMiddleware struct {
@@ -39,19 +39,18 @@ func (mw *AuthorizationMiddleware) AllowedEmojis(
 	return emojis, nil
 }
 
-func (mw *AuthorizationMiddleware) ToggleReaction(
+func (mw *AuthorizationMiddleware) ToggleMyReaction(
 	ctx context.Context,
 	targetType TargetType,
 	targetID string,
-	userID string,
 	emoji string,
 ) error {
-	err := mw.authzClient.CheckAccess(ctx, ServiceName, string(targetType)+":"+targetID, ActionToggleReaction)
+	err := mw.authzClient.CheckAccess(ctx, ServiceName, "", ActionToggleReaction)
 	if err != nil {
 		return fmt.Errorf("failed to check authorization: %w", err)
 	}
 
-	err = mw.next.ToggleReaction(ctx, targetType, targetID, userID, emoji)
+	err = mw.next.ToggleMyReaction(ctx, targetType, targetID, emoji)
 	if err != nil {
 		return fmt.Errorf("failed to call next method: %w", err)
 	}
@@ -59,18 +58,17 @@ func (mw *AuthorizationMiddleware) ToggleReaction(
 	return nil
 }
 
-func (mw *AuthorizationMiddleware) GetTargetReactions(
+func (mw *AuthorizationMiddleware) GetMyReactions(
 	ctx context.Context,
 	targetType TargetType,
 	targetID string,
-	currentUserID *string,
 ) (*TargetReactions, error) {
-	err := mw.authzClient.CheckAccess(ctx, ServiceName, string(targetType)+":"+targetID, ActionGetTargetReactions)
+	err := mw.authzClient.CheckAccess(ctx, ServiceName, "", ActionGetMyReactions)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check authorization: %w", err)
 	}
 
-	res, err := mw.next.GetTargetReactions(ctx, targetType, targetID, currentUserID)
+	res, err := mw.next.GetMyReactions(ctx, targetType, targetID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to call next method: %w", err)
 	}

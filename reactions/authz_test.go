@@ -25,21 +25,19 @@ func (s *stubService) AllowedEmojis(
 	return []string{"👍", "👎", "😂"}, nil
 }
 
-func (s *stubService) ToggleReaction(
+func (s *stubService) ToggleMyReaction(
 	ctx context.Context,
 	targetType reactions.TargetType,
 	targetID string,
-	userID string,
 	emoji string,
 ) error {
 	return nil
 }
 
-func (s *stubService) GetTargetReactions(
+func (s *stubService) GetMyReactions(
 	ctx context.Context,
 	targetType reactions.TargetType,
 	targetID string,
-	currentUserID *string,
 ) (*reactions.TargetReactions, error) {
 	return &reactions.TargetReactions{
 		TargetType: targetType,
@@ -55,9 +53,8 @@ func TestAuthorizationMiddleware(t *testing.T) {
 	tmpFile := filepath.Join(tmpDir, "policy.csv")
 	content := []byte(`g, system:anonymous, system:unauthenticated
 
-p, system:authenticated, github.com/nasermirzaei89/scribble/reactions, *, toggleReaction
-p, system:authenticated, github.com/nasermirzaei89/scribble/reactions, *, getTargetReactions
-p, system:unauthenticated, github.com/nasermirzaei89/scribble/reactions, *, getTargetReactions
+p, system:authenticated, github.com/nasermirzaei89/scribble/reactions, -, toggleReaction
+p, system:authenticated, github.com/nasermirzaei89/scribble/reactions, -, getMyReactions
 `)
 
 	err := os.WriteFile(tmpFile, content, 0o600)
@@ -85,21 +82,22 @@ p, system:unauthenticated, github.com/nasermirzaei89/scribble/reactions, *, getT
 	authenticatedCtx := authcontext.WithSubject(ctx, userID)
 
 	t.Run("anonymous", func(t *testing.T) {
-		err := svc.ToggleReaction(anonymousCtx, targetType, targetID, userID, emoji)
+		err := svc.ToggleMyReaction(anonymousCtx, targetType, targetID, emoji)
 		require.Error(t, err)
 
 		accessDeniedErr := &authorization.AccessDeniedError{}
 		require.ErrorAs(t, err, &accessDeniedErr)
 
-		_, err = svc.GetTargetReactions(anonymousCtx, targetType, targetID, nil)
-		require.NoError(t, err)
+		_, err = svc.GetMyReactions(anonymousCtx, targetType, targetID)
+		require.Error(t, err)
+		require.ErrorAs(t, err, &accessDeniedErr)
 	})
 
 	t.Run("authenticated", func(t *testing.T) {
-		err := svc.ToggleReaction(authenticatedCtx, targetType, targetID, userID, emoji)
+		err := svc.ToggleMyReaction(authenticatedCtx, targetType, targetID, emoji)
 		require.NoError(t, err)
 
-		_, err = svc.GetTargetReactions(authenticatedCtx, targetType, targetID, &userID)
+		_, err = svc.GetMyReactions(authenticatedCtx, targetType, targetID)
 		require.NoError(t, err)
 	})
 }

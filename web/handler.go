@@ -183,7 +183,7 @@ func (h *Handler) renderTemplate(w http.ResponseWriter, r *http.Request, name st
 ) {
 	var currentUser *authentication.User
 
-	if isAuthenticated(r) {
+	if isAuthenticatedRequest(r) {
 		var err error
 
 		currentUser, err = h.authSvc.GetCurrentUser(r.Context())
@@ -199,7 +199,7 @@ func (h *Handler) renderTemplate(w http.ResponseWriter, r *http.Request, name st
 		"CurrentPath":     r.URL.Path,
 		"Lang":            "en",
 		"Dir":             "ltr",
-		"IsAuthenticated": isAuthenticated(r),
+		"IsAuthenticated": isAuthenticatedRequest(r),
 		"CurrentUser":     currentUser,
 	}
 
@@ -248,7 +248,6 @@ func (h *Handler) HandleHomePage(w http.ResponseWriter, r *http.Request) {
 	postsWithAuthors, err := h.preloadPostAuthor(
 		r.Context(),
 		posts,
-		h.currentUserIDFromRequest(r),
 		"/",
 		csrf.TemplateField(r),
 	)
@@ -273,7 +272,7 @@ type FullPost struct {
 	Author        *authentication.User
 	CommentsCount *int
 	Comments      []*CommentWithAuthor
-	Reactions     *ReactionWidgetData
+	Reactions     map[string]any
 }
 
 type CommentWithAuthor struct {
@@ -282,22 +281,12 @@ type CommentWithAuthor struct {
 	Author *authentication.User
 
 	Replies   []*CommentWithAuthor
-	Reactions *ReactionWidgetData
-}
-
-type ReactionWidgetData struct {
-	TargetType      reactions.TargetType
-	TargetID        string
-	Options         []reactions.ReactionOption
-	ReturnTo        string
-	IsAuthenticated bool
-	CSRFField       template.HTML
+	Reactions map[string]any
 }
 
 func (h *Handler) preloadPostAuthor(
 	ctx context.Context,
 	posts []*contents.Post,
-	currentUserID *string,
 	returnTo string,
 	csrfField template.HTML,
 ) ([]*FullPost, error) {
@@ -319,7 +308,6 @@ func (h *Handler) preloadPostAuthor(
 			ctx,
 			reactions.TargetTypePost,
 			post.ID,
-			currentUserID,
 			returnTo,
 			csrfField,
 		)
@@ -538,7 +526,6 @@ func (h *Handler) HandleCreatePost() http.Handler {
 func (h *Handler) HandleViewPostPage() http.Handler {
 	hf := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		postID := r.PathValue("postId")
-		currentUserID := h.currentUserIDFromRequest(r)
 		returnTo := "/p/" + postID
 
 		post, err := h.contentsSvc.GetPost(r.Context(), postID)
@@ -560,7 +547,6 @@ func (h *Handler) HandleViewPostPage() http.Handler {
 		comments, err := h.listCommentsWithAuthors(
 			r.Context(),
 			post.ID,
-			currentUserID,
 			returnTo,
 			csrf.TemplateField(r),
 		)
@@ -575,7 +561,6 @@ func (h *Handler) HandleViewPostPage() http.Handler {
 			r.Context(),
 			reactions.TargetTypePost,
 			post.ID,
-			currentUserID,
 			returnTo,
 			csrf.TemplateField(r),
 		)
@@ -601,7 +586,6 @@ func (h *Handler) HandleViewPostPage() http.Handler {
 func (h *Handler) listCommentsWithAuthors(
 	ctx context.Context,
 	postID string,
-	currentUserID *string,
 	returnTo string,
 	csrfField template.HTML,
 ) ([]*CommentWithAuthor, error) {
@@ -628,7 +612,6 @@ func (h *Handler) listCommentsWithAuthors(
 			ctx,
 			reactions.TargetTypeComment,
 			comment.ID,
-			currentUserID,
 			returnTo,
 			csrfField,
 		)
@@ -670,39 +653,38 @@ func (h *Handler) listCommentsWithAuthors(
 	return roots, nil
 }
 
-func (h *Handler) currentUserIDFromRequest(r *http.Request) *string {
-	if !isAuthenticated(r) {
-		return nil
-	}
-
-	currentUserID := authcontext.GetSubject(r.Context())
-	if currentUserID == authcontext.Anonymous {
-		return nil
-	}
-
-	return &currentUserID
-}
-
 func (h *Handler) buildReactionWidgetData(
 	ctx context.Context,
 	targetType reactions.TargetType,
 	targetID string,
-	currentUserID *string,
 	returnTo string,
 	csrfField template.HTML,
-) (*ReactionWidgetData, error) {
-	targetReactions, err := h.reactionsSvc.GetTargetReactions(ctx, targetType, targetID, currentUserID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get target reactions: %w", err)
+) (map[string]any, error) {
+	isAuthenticated := isAuthenticated(ctx)
+
+	if !isAuthenticated {
+		return map[string]any{
+			"TargetType":      targetType,
+			"TargetID":        targetID,
+			"Options":         []reactions.ReactionOption{},
+			"ReturnTo":        returnTo,
+			"IsAuthenticated": false,
+			csrf.TemplateTag:  csrfField,
+		}, nil
 	}
 
-	return &ReactionWidgetData{
-		TargetType:      targetReactions.TargetType,
-		TargetID:        targetReactions.TargetID,
-		Options:         targetReactions.Options,
-		ReturnTo:        returnTo,
-		IsAuthenticated: currentUserID != nil,
-		CSRFField:       csrfField,
+	targetReactions, err := h.reactionsSvc.GetMyReactions(ctx, targetType, targetID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get my reactions: %w", err)
+	}
+
+	return map[string]any{
+		"TargetType":      targetReactions.TargetType,
+		"TargetID":        targetReactions.TargetID,
+		"Options":         targetReactions.Options,
+		"ReturnTo":        returnTo,
+		"IsAuthenticated": isAuthenticated,
+		csrf.TemplateTag:  csrfField,
 	}, nil
 }
 
@@ -787,7 +769,7 @@ func (h *Handler) HandleToggleReaction() http.Handler {
 
 		returnTo := sanitizeReturnToPath(r.FormValue("return_to"))
 
-		if !isAuthenticated(r) {
+		if !isAuthenticatedRequest(r) {
 			if r.Header.Get(htmxRequestHeader) == htmxRequestValueTrue {
 				w.Header().Set("HX-Redirect", "/login")
 				w.WriteHeader(http.StatusUnauthorized)
@@ -802,15 +784,7 @@ func (h *Handler) HandleToggleReaction() http.Handler {
 
 		emoji := r.FormValue("emoji")
 
-		currentUser, err := h.authSvc.GetCurrentUser(r.Context())
-		if err != nil {
-			slog.ErrorContext(r.Context(), "failed to get current user for reaction", "error", err)
-			http.Error(w, "Failed to get current user", http.StatusInternalServerError)
-
-			return
-		}
-
-		err = h.reactionsSvc.ToggleReaction(r.Context(), targetType, targetID, currentUser.ID, emoji)
+		err = h.reactionsSvc.ToggleMyReaction(r.Context(), targetType, targetID, emoji)
 		if err != nil {
 			var (
 				invalidTargetTypeErr reactions.InvalidTargetTypeError
@@ -840,7 +814,6 @@ func (h *Handler) HandleToggleReaction() http.Handler {
 			r.Context(),
 			targetType,
 			targetID,
-			&currentUser.ID,
 			returnTo,
 			csrf.TemplateField(r),
 		)
@@ -851,13 +824,7 @@ func (h *Handler) HandleToggleReaction() http.Handler {
 			return
 		}
 
-		err = h.tpl.ExecuteTemplate(w, "reactions.gohtml", widgetData)
-		if err != nil {
-			slog.ErrorContext(r.Context(), "failed to render reactions template", "error", err)
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-
-			return
-		}
+		h.renderTemplate(w, r, "reactions.gohtml", widgetData)
 	})
 }
 

@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -126,13 +127,17 @@ func (h *Handler) authMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func isAuthenticated(r *http.Request) bool {
-	return authcontext.GetSubject(r.Context()) != authcontext.Anonymous
+func isAuthenticated(ctx context.Context) bool {
+	return authcontext.GetSubject(ctx) != authcontext.Anonymous
+}
+
+func isAuthenticatedRequest(r *http.Request) bool {
+	return isAuthenticated(r.Context())
 }
 
 func (h *Handler) AuthenticatedOnly(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !isAuthenticated(r) {
+		if !isAuthenticatedRequest(r) {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 
 			return
@@ -144,7 +149,7 @@ func (h *Handler) AuthenticatedOnly(next http.Handler) http.Handler {
 
 func (h *Handler) GuestOnly(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if isAuthenticated(r) {
+		if isAuthenticatedRequest(r) {
 			http.Redirect(w, r, "/", http.StatusSeeOther)
 
 			return
